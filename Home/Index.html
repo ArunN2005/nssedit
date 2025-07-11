@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script> 
     function getCookie(name) {
@@ -70,10 +71,53 @@
       background: var(--bg-color);
       color: var(--text-color);
       overflow-x: hidden;
-      overflow-y: auto;
       line-height: 1.6;
       min-height: 100vh;
-      height: auto;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Loading Screen */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      visibility: visible;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .loading-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    
+    .loading-logo {
+      height: 80px;
+      margin-bottom: 2rem;
+      filter: brightness(1.2) drop-shadow(0 0 20px rgba(107, 52, 245, 0.5));
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(107, 52, 245, 0.3);
+      border-top: 3px solid var(--accent-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     
     #particles {
@@ -81,7 +125,7 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 100vh; /* Changed to viewport height */
+      height: 100vh;
       pointer-events: none;
       z-index: -1;
     }
@@ -91,15 +135,16 @@
       justify-content: space-between;
       align-items: center;
       background: var(--nav-bg);
+      backdrop-filter: blur(20px);
       padding: 1rem 2rem;
       box-shadow: var(--shadow);
       position: sticky;
       top: 0;
       z-index: 1000;
       border-bottom: 1px solid var(--border);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       flex-wrap: wrap;
-      will-change: transform, opacity;
+      will-change: transform;
     }
     
     .nav-brand {
@@ -111,11 +156,12 @@
     #logo {
       height: 50px;
       filter: brightness(1.2) drop-shadow(0 0 10px rgba(107, 52, 245, 0.3));
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
     }
     
     #logo:hover {
-      transform: scale(1.05);
+      transform: scale(1.05) rotate(5deg);
       filter: brightness(1.3) drop-shadow(0 0 15px rgba(107, 52, 245, 0.5));
     }
     
@@ -142,27 +188,23 @@
     .nav-links a::before {
       content: '';
       position: absolute;
-      bottom: 0;
-      left: 0;
+      top: 0;
+      left: -100%;
       width: 100%;
-      height: 2px;
-      background: var(--accent-color);
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
+      height: 100%;
+      background: var(--gradient);
+      opacity: 0.1;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: -1;
     }
     
     .nav-links a:hover::before {
-      transform: translateX(0);
+      left: 0;
     }
     
     .nav-links a:hover {
       color: var(--accent-color);
       transform: translateY(-2px);
-    }
-    
-    .nav-links a:focus {
-      outline: 2px solid var(--accent-color);
-      outline-offset: 2px;
     }
     
     .nav-actions {
@@ -183,16 +225,28 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
       font-family: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    #logout-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    #logout-btn:hover::before {
+      left: 100%;
     }
     
     #logout-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(107, 52, 245, 0.4);
-    }
-    
-    #logout-btn:focus {
-      outline: 2px solid var(--accent-color);
-      outline-offset: 2px;
     }
     
     .hamburger {
@@ -201,6 +255,7 @@
       cursor: pointer;
       gap: 5px;
       z-index: 1100;
+      transition: all 0.3s ease;
     }
     
     .hamburger span {
@@ -208,7 +263,7 @@
       height: 3px;
       background: var(--text-color);
       border-radius: 2px;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .hamburger.active span:nth-child(1) {
@@ -229,8 +284,7 @@
       margin: 0 auto;
       min-height: 100vh;
       z-index: 5;
-      will-change: opacity;
-      overflow: hidden; /* Prevent internal content from causing scroll */
+      will-change: transform;
     }
     
     .hero-section {
@@ -250,6 +304,20 @@
       background-clip: text;
       margin-bottom: 1rem;
       letter-spacing: -0.02em;
+      position: relative;
+    }
+    
+    .hero-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 4px;
+      background: var(--gradient);
+      border-radius: 2px;
+      opacity: 0;
     }
     
     .hero-subtitle {
@@ -262,27 +330,24 @@
     
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1.5rem;
       margin-bottom: 3rem;
       z-index: 20;
-      min-height: 200px;
-      visibility: visible;
-      opacity: 1;
     }
     
     .stat-card {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 1.5rem;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 2rem;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
-      z-index: 21;
-      visibility: visible;
-      opacity: 1;
+      cursor: pointer;
+      will-change: transform;
     }
     
     .stat-card::before {
@@ -293,26 +358,37 @@
       right: 0;
       height: 4px;
       background: var(--gradient);
-      border-radius: 16px 16px 0 0;
-      z-index: 1;
+      border-radius: 20px 20px 0 0;
+      transform: scaleX(0);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .stat-card:hover::before {
+      transform: scaleX(1);
     }
     
     .stat-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 15px 30px rgba(107, 52, 245, 0.2);
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 25px 50px rgba(107, 52, 245, 0.25);
     }
     
     .stat-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.75rem;
+      font-size: 3rem;
+      margin-bottom: 1rem;
       display: block;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .stat-card:hover .stat-icon {
+      transform: scale(1.1) rotate(10deg);
     }
     
     .stat-value {
-      font-size: 2rem;
+      font-size: 2.5rem;
       font-weight: 700;
       color: var(--accent-color);
       margin-bottom: 0.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .stat-label {
@@ -327,41 +403,75 @@
     .dashboard-grid {
       display: grid;
       grid-template-columns: 2fr 1fr;
-      gap: 1.5rem;
+      gap: 2rem;
       margin-bottom: 3rem;
       z-index: 10;
     }
     
     .chart-container {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 1.5rem;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 2rem;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       z-index: 10;
-      min-height: 300px;
-      aspect-ratio: 1.5 / 1; /* Ensure consistent proportions */
+      min-height: 400px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .chart-container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: var(--gradient);
+      opacity: 0;
+      transform: rotate(30deg);
+      transition: opacity 0.3s ease;
+    }
+    
+    .chart-container:hover::before {
+      opacity: 0.05;
+    }
+    
+    .chart-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 30px 60px rgba(107, 52, 245, 0.2);
     }
     
     .chart-title {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-color);
       margin-bottom: 1.5rem;
       text-align: center;
+      position: relative;
+      z-index: 2;
     }
     
     .quick-actions {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 1.5rem;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 2rem;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       z-index: 10;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .quick-actions:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 30px 60px rgba(107, 52, 245, 0.2);
     }
     
     .quick-actions h3 {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-color);
       margin-bottom: 1.5rem;
@@ -371,46 +481,66 @@
     .action-button {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 1rem;
       width: 100%;
-      padding: 0.75rem 1rem;
+      padding: 1rem 1.5rem;
       background: var(--input-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 12px;
       color: var(--text-color);
       text-decoration: none;
       font-weight: 600;
-      margin-bottom: 0.75rem;
+      margin-bottom: 1rem;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .action-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient);
+      opacity: 0.1;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .action-button:hover::before {
+      left: 0;
     }
     
     .action-button:hover {
-      background: var(--accent-color);
-      color: white;
-      transform: translateX(4px);
-      box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
-    }
-    
-    .action-button:focus {
-      outline: 2px solid var(--accent-color);
-      outline-offset: 2px;
+      color: var(--accent-color);
+      transform: translateX(8px);
+      box-shadow: 0 8px 25px rgba(107, 52, 245, 0.2);
+      border-color: var(--accent-color);
     }
     
     .action-icon {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .action-button:hover .action-icon {
+      transform: scale(1.2);
     }
     
     .nss-info {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 2rem;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 3rem;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       text-align: center;
       position: relative;
       overflow: hidden;
       z-index: 10;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .nss-info::before {
@@ -423,32 +553,43 @@
       background: var(--gradient);
       opacity: 0.05;
       transform: rotate(30deg);
-      transition: opacity 0.3s ease;
+      transition: all 0.3s ease;
     }
     
     .nss-info:hover::before {
       opacity: 0.1;
+      transform: rotate(35deg);
+    }
+    
+    .nss-info:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 30px 60px rgba(107, 52, 245, 0.2);
     }
     
     .nss-logo {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 1.5rem;
-      filter: drop-shadow(0 0 15px rgba(107, 52, 245, 0.3));
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 2rem;
+      filter: drop-shadow(0 0 20px rgba(107, 52, 245, 0.3));
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .nss-info:hover .nss-logo {
+      transform: scale(1.05) rotate(5deg);
     }
     
     .nss-title {
-      font-size: 1.75rem;
+      font-size: 2rem;
       font-weight: 700;
       background: var(--gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 0.75rem;
+      margin-bottom: 1rem;
     }
     
     .nss-motto {
-      font-size: 1.125rem;
+      font-size: 1.25rem;
       font-weight: 600;
       color: var(--text-color);
       opacity: 0.8;
@@ -457,8 +598,8 @@
     }
     
     .nss-description {
-      font-size: 0.9rem;
-      line-height: 1.6;
+      font-size: 1rem;
+      line-height: 1.7;
       color: var(--text-color);
       opacity: 0.9;
       text-align: justify;
@@ -466,95 +607,85 @@
     }
     
     .mode-toggle {
-      width: 60px;
-      height: 30px;
+      width: 70px;
+      height: 35px;
       background: var(--gradient);
       border-radius: 50px;
       cursor: pointer;
       overflow: hidden;
-      box-shadow: 0 4px 10px rgba(107, 52, 245, 0.3);
+      box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
     }
     
     .mode-toggle:hover {
       transform: scale(1.05);
-      box-shadow: 0 6px 15px rgba(107, 52, 245, 0.4);
-    }
-    
-    .mode-toggle:focus {
-      outline: 2px solid var(--accent-color);
-      outline-offset: 2px;
+      box-shadow: 0 6px 20px rgba(107, 52, 245, 0.4);
     }
     
     .slider {
       position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 26px;
-      height: 26px;
+      top: 3px;
+      left: 3px;
+      width: 29px;
+      height: 29px;
       background: white;
       border-radius: 50%;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     
     .light-mode .slider {
-      transform: translateX(30px);
+      transform: translateX(35px);
     }
     
     .chatbot-toggle {
       position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
+      bottom: 2rem;
+      right: 2rem;
       background: var(--gradient);
       color: white;
       border: none;
       border-radius: 50%;
-      width: 60px;
-      height: 60px;
+      width: 70px;
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       cursor: pointer;
       z-index: 2000;
-      box-shadow: 0 6px 20px rgba(107, 52, 245, 0.4);
+      box-shadow: 0 8px 25px rgba(107, 52, 245, 0.4);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .chatbot-toggle:hover {
       transform: scale(1.1);
-      box-shadow: 0 8px 25px rgba(107, 52, 245, 0.5);
-    }
-    
-    .chatbot-toggle:focus {
-      outline: 2px solid var(--accent-color);
-      outline-offset: 2px;
+      box-shadow: 0 12px 35px rgba(107, 52, 245, 0.5);
     }
     
     .chatbot-container {
       position: fixed;
-      bottom: 100px;
-      right: 1.5rem;
-      width: 360px;
-      max-width: calc(100vw - 3rem);
-      height: 500px;
+      bottom: 110px;
+      right: 2rem;
+      width: 380px;
+      max-width: calc(100vw - 4rem);
+      height: 550px;
       max-height: 80vh;
       background: var(--card-bg);
-      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
       box-shadow: var(--shadow);
       border: 1px solid var(--border);
       display: none;
       flex-direction: column;
       z-index: 1500;
       overflow: hidden;
-      pointer-events: auto;
-      will-change: transform, opacity;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .chatbot-container.active {
@@ -564,7 +695,7 @@
     .chatbot-header {
       background: var(--gradient);
       color: white;
-      padding: 1rem;
+      padding: 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -572,7 +703,7 @@
     }
     
     .chatbot-header h3 {
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: 700;
     }
     
@@ -580,50 +711,47 @@
       background: none;
       border: none;
       color: white;
-      font-size: 1rem;
+      font-size: 1.2rem;
       cursor: pointer;
-      padding: 0.25rem;
-      border-radius: 4px;
-      transition: background 0.2s ease;
+      padding: 0.5rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
     }
     
     .chatbot-header .close-btn:hover {
       background: rgba(255, 255, 255, 0.2);
-    }
-    
-    .chatbot-header .close-btn:focus {
-      outline: 2px solid white;
-      outline-offset: 2px;
+      transform: scale(1.1);
     }
     
     .chatbot-body {
       flex: 1;
-      padding: 1rem;
+      padding: 1.5rem;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 1rem;
       z-index: 1;
     }
     
     .chat-message {
       max-width: 85%;
-      padding: 0.75rem 1rem;
-      border-radius: 12px;
-      font-size: 0.85rem;
-      line-height: 1.5;
+      padding: 1rem 1.5rem;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      line-height: 1.6;
       word-wrap: break-word;
-      animation: messageSlide 0.3s ease-out;
+      animation: messageSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
     }
     
     @keyframes messageSlide {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px) scale(0.95);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
       }
     }
     
@@ -631,82 +759,73 @@
       background: var(--gradient);
       color: white;
       align-self: flex-end;
-      border-bottom-right-radius: 4px;
+      border-bottom-right-radius: 6px;
     }
     
     .chat-message.bot {
       background: var(--input-bg);
       color: var(--text-color);
       align-self: flex-start;
-      border-bottom-left-radius: 4px;
+      border-bottom-left-radius: 6px;
+      border: 1px solid var(--border);
     }
     
     .chatbot-footer {
-      padding: 1rem;
+      padding: 1.5rem;
       border-top: 1px solid var(--border);
       display: flex;
-      gap: 0.5rem;
+      gap: 0.75rem;
       z-index: 3;
     }
     
     .chatbot-footer input {
       flex: 1;
-      padding: 0.5rem 0.75rem;
+      padding: 0.75rem 1rem;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 12px;
       background: var(--input-bg);
       color: var(--text-color);
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       outline: none;
       font-family: inherit;
-      transition: border-color 0.3s ease;
-      z-index: 4;
-      pointer-events: auto;
+      transition: all 0.3s ease;
     }
     
     .chatbot-footer input:focus {
       border-color: var(--accent-color);
-      box-shadow: 0 0 5px rgba(107, 52, 245, 0.3);
+      box-shadow: 0 0 10px rgba(107, 52, 245, 0.2);
     }
     
     .chatbot-footer button {
       background: var(--gradient);
       color: white;
       border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: inherit;
-      z-index: 4;
     }
     
     .chatbot-footer button:hover {
       transform: scale(1.05);
-      box-shadow: 0 4px 10px rgba(107, 52, 245, 0.3);
+      box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
     }
     
-    .chatbot-footer button:focus {
-      outline: 2px solid var(--accent-color);
-      outline-offset: 2px;
-    }
-    
+    /* Responsive Design */
     @media (max-width: 900px) {
       .dashboard-grid {
         grid-template-columns: 1fr;
-      }
-      
-      .chart-container {
-        aspect-ratio: 1 / 1; /* Square for smaller screens */
+        gap: 1.5rem;
       }
       
       .chatbot-container {
-        width: 320px;
-        max-width: calc(100vw - 2rem);
-        height: 450px;
-        max-height: 70vh;
+        width: calc(100vw - 2rem);
+        right: 1rem;
+        left: 1rem;
+        height: 60vh;
       }
     }
     
@@ -719,16 +838,18 @@
       .nav-links {
         display: none;
         position: fixed;
-        top: 4rem;
+        top: 5rem;
         left: 0;
         right: 0;
         background: var(--nav-bg);
+        backdrop-filter: blur(20px);
         flex-direction: column;
-        padding: 1.5rem;
+        padding: 2rem;
         border-top: 1px solid var(--border);
-        gap: 1rem;
+        gap: 1.5rem;
         z-index: 600;
         width: 100%;
+        border-radius: 0 0 20px 20px;
       }
       
       .nav-links.active {
@@ -748,30 +869,22 @@
         gap: 1rem;
       }
       
-      .chart-container {
-        min-height: 250px;
-      }
-      
-      .chatbot-container {
-        width: calc(100vw - 2rem);
-        right: 1rem;
-        left: 1rem;
-        height: 60vh;
-        max-height: 70vh;
+      .stat-card {
+        padding: 1.5rem;
       }
       
       .chatbot-toggle {
-        width: 50px;
-        height: 50px;
-        bottom: 1rem;
-        right: 1rem;
-        font-size: 1rem;
+        width: 60px;
+        height: 60px;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        font-size: 1.25rem;
       }
     }
     
     @media (max-width: 480px) {
       .hero-title {
-        font-size: 1.75rem;
+        font-size: 2rem;
       }
       
       .hero-subtitle {
@@ -779,45 +892,60 @@
       }
       
       .stat-card {
-        padding: 1rem;
+        padding: 1.25rem;
       }
       
       .stat-icon {
-        font-size: 2rem;
+        font-size: 2.5rem;
       }
       
       .stat-value {
-        font-size: 1.75rem;
-      }
-      
-      .stat-label {
-        font-size: 0.75rem;
+        font-size: 2rem;
       }
       
       .nss-info {
-        padding: 1.5rem;
+        padding: 2rem;
       }
       
       .nss-logo {
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
       }
       
       .nss-title {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
       }
-      
-      .nss-motto {
-        font-size: 1rem;
-      }
-      
-      .nss-description {
-        font-size: 0.85rem;
-      }
+    }
+    
+    /* Scroll animations */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    
+    .slide-in-left {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    
+    .slide-in-right {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    
+    .scale-in {
+      opacity: 0;
+      transform: scale(0.8);
     }
   </style>
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loading-screen">
+    <img src="./images/mainlogo.png" alt="NSS Logo" class="loading-logo">
+    <div class="loading-spinner"></div>
+  </div>
+
   <canvas id="particles"></canvas>
   
   <nav class="navbar">
@@ -843,28 +971,28 @@
   </nav>
   
   <main class="main-content">
-    <section class="hero-section">
+    <section class="hero-section fade-in">
       <h1 class="hero-title">NSS Portal Dashboard</h1>
       <p class="hero-subtitle">Empowering Communities Through Service</p>
     </section>
     
     <section class="stats-grid" id="stats-grid">
-      <div class="stat-card">
+      <div class="stat-card scale-in">
         <span class="stat-icon" aria-hidden="true">👥</span>
         <div class="stat-value" id="total-students">0</div>
         <div class="stat-label">Total Students</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in">
         <span class="stat-icon" aria-hidden="true">⏰</span>
         <div class="stat-value" id="total-hours">0</div>
         <div class="stat-label">Service Hours</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in">
         <span class="stat-icon" aria-hidden="true">🎯</span>
         <div class="stat-value" id="active-volunteers">0</div>
         <div class="stat-label">Active Volunteers</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in">
         <span class="stat-icon" aria-hidden="true">📈</span>
         <div class="stat-value" id="completion-rate">0%</div>
         <div class="stat-label">Completion Rate</div>
@@ -872,12 +1000,12 @@
     </section>
     
     <section class="dashboard-grid">
-      <div class="chart-container">
+      <div class="chart-container slide-in-left">
         <h3 class="chart-title">Student Progress Overview</h3>
         <canvas id="progressChart" width="400" height="300"></canvas>
       </div>
       
-      <div class="quick-actions">
+      <div class="quick-actions slide-in-right">
         <h3>Quick Actions</h3>
         <a href="/attendance" class="action-button" aria-label="Mark Attendance">
           <span class="action-icon" aria-hidden="true">📝</span>
@@ -902,7 +1030,7 @@
       </div>
     </section>
     
-    <section class="nss-info">
+    <section class="nss-info fade-in">
       <img src="./images/logo.png" alt="NSS Logo" class="nss-logo" aria-hidden="true">
       <h2 class="nss-title">National Service Scheme</h2>
       <p class="nss-motto">"Not Me But You"</p>
@@ -934,11 +1062,29 @@
   </div>
 
   <script>
+    // Register GSAP plugins
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Initialize loading screen
+    window.addEventListener('load', () => {
+      const loadingScreen = document.getElementById('loading-screen');
+      
+      gsap.to(loadingScreen, {
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.inOut",
+        onComplete: () => {
+          loadingScreen.classList.add('hidden');
+          initializeAnimations();
+        }
+      });
+    });
+
     // Particle System
     const canvas = document.getElementById('particles');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight; // Use viewport height
+    canvas.height = window.innerHeight;
     const particlesArray = [];
     
     class Particle {
@@ -973,6 +1119,12 @@
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Add glow effect
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = `rgba(${color}, ${this.opacity * 0.8})`;
+        ctx.fill();
+        ctx.shadowBlur = 0;
       }
     }
     
@@ -991,33 +1143,236 @@
     
     animateParticles();
     
-    // Debounced Resize Handler
     let resizeTimeout;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight; // Update to viewport height
+        canvas.height = window.innerHeight;
       }, 100);
     });
+
+    // Initialize all animations
+    function initializeAnimations() {
+      // Navbar animation
+      gsap.from('.navbar', {
+        y: -100,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+      });
+
+      // Hero section animation
+      const heroTl = gsap.timeline({ delay: 0.3 });
+      heroTl.from('.hero-title', {
+        y: 50,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+      })
+      .from('.hero-subtitle', {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+      }, "-=0.5")
+      .to('.hero-title::after', {
+        opacity: 1,
+        scaleX: 1,
+        duration: 0.8,
+        ease: "power3.out"
+      }, "-=0.3");
+
+      // Stats cards animation
+      gsap.from('.stat-card', {
+        y: 80,
+        opacity: 0,
+        scale: 0.8,
+        duration: 1,
+        stagger: 0.15,
+        ease: "back.out(1.7)",
+        delay: 0.8
+      });
+
+      // Dashboard grid animation
+      gsap.from('.chart-container', {
+        x: -100,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+        delay: 1.2
+      });
+
+      gsap.from('.quick-actions', {
+        x: 100,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+        delay: 1.4
+      });
+
+      // Quick action buttons stagger
+      gsap.from('.action-button', {
+        y: 30,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power3.out",
+        delay: 1.6
+      });
+
+      // NSS info section
+      gsap.from('.nss-info', {
+        y: 100,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+        delay: 1.8
+      });
+
+      // Chatbot entrance
+      gsap.from('.chatbot-toggle', {
+        scale: 0,
+        rotation: 180,
+        opacity: 0,
+        duration: 0.8,
+        ease: "back.out(1.7)",
+        delay: 2
+      });
+
+      // Setup scroll-triggered animations
+      setupScrollAnimations();
+    }
+
+    // Scroll-triggered animations
+    function setupScrollAnimations() {
+      // Fade in elements on scroll
+      gsap.utils.toArray('.fade-in').forEach(element => {
+        gsap.fromTo(element, 
+          {
+            opacity: 0,
+            y: 50
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: element,
+              start: "top 80%",
+              end: "bottom 20%",
+              toggleActions: "play none none reverse"
+            }
+          }
+        );
+      });
+
+      // Slide in from left
+      gsap.utils.toArray('.slide-in-left').forEach(element => {
+        gsap.fromTo(element,
+          {
+            opacity: 0,
+            x: -100
+          },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: element,
+              start: "top 80%",
+              toggleActions: "play none none reverse"
+            }
+          }
+        );
+      });
+
+      // Slide in from right
+      gsap.utils.toArray('.slide-in-right').forEach(element => {
+        gsap.fromTo(element,
+          {
+            opacity: 0,
+            x: 100
+          },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: element,
+              start: "top 80%",
+              toggleActions: "play none none reverse"
+            }
+          }
+        );
+      });
+
+      // Scale in elements
+      gsap.utils.toArray('.scale-in').forEach(element => {
+        gsap.fromTo(element,
+          {
+            opacity: 0,
+            scale: 0.8
+          },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.8,
+            ease: "back.out(1.7)",
+            scrollTrigger: {
+              trigger: element,
+              start: "top 80%",
+              toggleActions: "play none none reverse"
+            }
+          }
+        );
+      });
+    }
 
     // Navigation
     function toggleMenu() {
       const navLinks = document.querySelector('.nav-links');
       const hamburger = document.querySelector('.hamburger');
+      
       navLinks.classList.toggle('active');
       hamburger.classList.toggle('active');
+      
+      if (navLinks.classList.contains('active')) {
+        gsap.from('.nav-links a', {
+          y: 20,
+          opacity: 0,
+          duration: 0.4,
+          stagger: 0.1,
+          ease: "power3.out"
+        });
+      }
     }
+
+    // Hamburger click handler
+    document.getElementById('hamburger').addEventListener('click', toggleMenu);
 
     // Logout
     const logoutBtn = document.getElementById('logout-btn');
     logoutBtn.addEventListener('click', () => {
-      document.cookie = 'userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      localStorage.removeItem('email');
-      localStorage.removeItem('userEmail');
-      history.replaceState(null, null, "/");
-      window.location.href = '/';
+      // Add loading animation
+      gsap.to(logoutBtn, {
+        scale: 0.95,
+        duration: 0.1,
+        yoyo: true,
+        repeat: 1,
+        ease: "power2.inOut",
+        onComplete: () => {
+          document.cookie = 'userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = 'userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          localStorage.removeItem('email');
+          localStorage.removeItem('userEmail');
+          history.replaceState(null, null, "/");
+          window.location.href = '/';
+        }
+      });
     });
 
     // Mode Toggle
@@ -1026,6 +1381,8 @@
       document.body.classList.toggle('light-mode');
       localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
       modeToggle.querySelector('.slider').textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+      
+      // Animate toggle
       gsap.to(modeToggle, {
         scale: 0.9,
         duration: 0.1,
@@ -1050,7 +1407,6 @@
         const response = await fetch('/api/students');
         if (!response.ok) throw new Error('Failed to fetch student data');
         const students = await response.json();
-        console.log('Student data:', students); // Debug data
         
         const totalStudents = students.length || 0;
         const totalHours = students.reduce((sum, student) => sum + (student.hoursWorked || 0), 0);
@@ -1074,51 +1430,27 @@
             </div>
           </div>
         `;
-        statsGrid.style.opacity = '1';
-        statsGrid.style.visibility = 'visible';
-        
-        const chartContainer = document.querySelector('.chart-container');
-        chartContainer.innerHTML = `
-          <h3 class="chart-title">Student Progress Overview</h3>
-          <div style="text-align: center; color: var(--error-color); padding: 1rem;">
-            Failed to load chart. Please try again later.
-          </div>
-        `;
       }
     }
     
     function animateCounter(elementId, targetValue, suffix = '') {
       const element = document.getElementById(elementId);
       if (!element) return;
-      const duration = 1500;
-      const startTime = performance.now();
       
-      function updateCounter(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const currentValue = Math.floor(targetValue * progress);
-        
-        element.textContent = currentValue + suffix;
-        
-        if (progress < 1) {
-          requestAnimationFrame(updateCounter);
+      gsap.to({ value: 0 }, {
+        value: targetValue,
+        duration: 2,
+        ease: "power3.out",
+        onUpdate: function() {
+          element.textContent = Math.floor(this.targets()[0].value) + suffix;
         }
-      }
-      
-      requestAnimationFrame(updateCounter);
+      });
     }
     
     function createProgressChart(students) {
       const canvas = document.getElementById('progressChart');
-      if (!canvas) {
-        console.error('Chart canvas not found');
-        return;
-      }
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        console.error('Failed to get chart canvas context');
-        return;
-      }
       
       const ranges = {
         '0 Hours': 0,
@@ -1139,13 +1471,8 @@
           else if (hours <= 80) ranges['61-80 Hours']++;
           else ranges['81+ Hours']++;
         });
-      } else {
-        console.warn('No valid student data for chart');
       }
       
-      console.log('Chart ranges:', ranges); // Debug chart data
-      
-      // Destroy existing chart if any
       if (canvas.chart) {
         canvas.chart.destroy();
       }
@@ -1165,7 +1492,7 @@
               '#06B6D4'
             ],
             borderWidth: 0,
-            hoverOffset: 10
+            hoverOffset: 15
           }]
         },
         options: {
@@ -1175,12 +1502,18 @@
             legend: {
               position: 'bottom',
               labels: {
-                padding: 15,
+                padding: 20,
                 usePointStyle: true,
                 font: { size: 12 },
                 color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
               }
             }
+          },
+          animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 2000,
+            easing: 'easeOutQuart'
           }
         }
       });
@@ -1192,28 +1525,39 @@
     const chatbotInput = document.getElementById('chatbot-input');
 
     function toggleChatbot() {
-      const isActive = chatbotContainer.classList.toggle('active');
-      if (isActive) {
-        chatbotInput.focus();
-        gsap.to(chatbotContainer, {
-          opacity: 1,
-          y: 0,
-          duration: 0.3,
-          ease: 'power3.out',
-          onComplete: () => {
-            chatbotContainer.style.pointerEvents = 'auto';
-            console.log('Chatbot opened, pointer-events: auto');
+      const isActive = chatbotContainer.classList.contains('active');
+      
+      if (!isActive) {
+        chatbotContainer.classList.add('active');
+        chatbotContainer.style.display = 'flex';
+        
+        gsap.fromTo(chatbotContainer, 
+          {
+            opacity: 0,
+            y: 50,
+            scale: 0.9
+          },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.4,
+            ease: "back.out(1.7)",
+            onComplete: () => {
+              chatbotInput.focus();
+            }
           }
-        });
+        );
       } else {
         gsap.to(chatbotContainer, {
           opacity: 0,
-          y: 20,
+          y: 50,
+          scale: 0.9,
           duration: 0.3,
-          ease: 'power3.in',
+          ease: "power3.in",
           onComplete: () => {
-            chatbotContainer.style.pointerEvents = 'none';
-            console.log('Chatbot closed, pointer-events: none');
+            chatbotContainer.classList.remove('active');
+            chatbotContainer.style.display = 'none';
           }
         });
       }
@@ -1243,9 +1587,6 @@
 
         const botMessage = document.createElement('div');
         botMessage.className = 'chat-message bot';
-        botMessage.style.background = 'rgba(59, 130, 246, 0.1)';
-        botMessage.style.border = '1px solid rgba(59, 130, 246, 0.3)';
-        botMessage.style.color = 'var(--success-color)';
         botMessage.innerHTML = data.reply;
         chatbotBody.appendChild(botMessage);
 
@@ -1263,35 +1604,8 @@
       }
     }
 
-    // Debug Input Clicks
-    chatbotInput.addEventListener('click', () => {
-      console.log('Chatbot input clicked');
-    });
-    chatbotInput.addEventListener('input', () => {
-      console.log(`Chatbot input value: ${chatbotInput.value}`);
-    });
-
-    // Initialize
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
-      gsap.from('.navbar', { duration: 0.8, y: -50, opacity: 0, ease: 'power3.out' });
-      gsap.from('.hero-section', { duration: 0.8, opacity: 0, y: 30, ease: 'power3.out', delay: 0.1 });
-      gsap.from('.stat-card', { 
-        duration: 0.8, 
-        opacity: 0, 
-        y: 30, 
-        stagger: 0.1, 
-        ease: 'power3.out', 
-        delay: 0.2,
-        onComplete: () => {
-          document.querySelectorAll('.stat-card').forEach(card => {
-            card.style.opacity = '1';
-            card.style.visibility = 'visible';
-          });
-        }
-      });
-      gsap.from('.dashboard-grid > *', { duration: 0.8, opacity: 0, y: 30, stagger: 0.1, ease: 'power3.out', delay: 0.3 });
-      gsap.from('.nss-info', { duration: 0.8, opacity: 0, y: 30, ease: 'power3.out', delay: 0.4 });
-      
       loadDashboardData();
     });
   </script>
