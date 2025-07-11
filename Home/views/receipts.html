@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NSS Portal - Receipts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg-color: #0a0a0f;
+        --text-color: #e0e0e0;
+        --card-bg: rgba(20, 20, 30, 1);
+        --nav-bg: rgba(10, 10, 15, 1);
+        --input-bg: rgba(40, 40, 50, 0.95);
+        --gradient: linear-gradient(135deg, #6b34f5, #00ddeb);
+        --shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        --border: rgba(107, 52, 245, 0.3);
+        --accent-color: #6b34f5;
+        --success-color: #10b981;
+        --error-color: #ef4444;
+        --warning-color: #f59e0b;
+      }
+
+      .light-mode {
+        --bg-color: #f5f6f5;
+        --text-color: #1a2526;
+        --card-bg: rgba(255, 255, 255, 1);
+        --nav-bg: rgba(245, 246, 245, 1);
+        --input-bg: rgba(240, 242, 245, 0.95);
+        --gradient: linear-gradient(135deg, #2e86c1, #85c1e9);
+        --shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        --border: rgba(46, 134, 193, 0.3);
+        --accent-color: #2e86c1;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Cal Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: var(--bg-color);
+        color: var(--text-color);
+        overflow-x: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        line-height: 1.6;
+      }
+
+      #particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--nav-bg);
+        backdrop-filter: blur(20px);
+        padding: 1.5rem 2rem;
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-bottom: 1px solid var(--border);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      #logo {
+        height: 50px;
+        filter: brightness(1.2) drop-shadow(0 0 10px rgba(107, 52, 245, 0.3));
+        transition: all 0.3s ease;
+      }
+
+      .light-mode #logo {
+        filter: brightness(1) drop-shadow(0 0 10px rgba(46, 134, 193, 0.3));
+      }
+
+      #logo:hover {
+        transform: scale(1.05);
+        filter: brightness(1.3) drop-shadow(0 0 15px rgba(107, 52, 245, 0.5));
+      }
+
+      .light-mode #logo:hover {
+        filter: brightness(1.1) drop-shadow(0 0 15px rgba(46, 134, 193, 0.5));
+      }
+
+      .nav-links {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+
+      .nav-links a {
+        color: var(--text-color);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .nav-links a::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: var(--gradient);
+        opacity: 0.1;
+        transition: left 0.3s ease;
+        z-index: -1;
+      }
+
+      .nav-links a:hover::before {
+        left: 0;
+      }
+
+      .nav-links a:hover {
+        color: var(--accent-color);
+        transform: translateY(-2px);
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      #logout-btn {
+        background: var(--gradient);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
+        font-family: inherit;
+      }
+
+      .light-mode #logout-btn {
+        box-shadow: 0 4px 15px rgba(46, 134, 193, 0.3);
+      }
+
+      #logout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(107, 52, 245, 0.4);
+      }
+
+      .light-mode #logout-btn:hover {
+        box-shadow: 0 8px 25px rgba(46, 134, 193, 0.4);
+      }
+
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        cursor: pointer;
+        gap: 4px;
+      }
+
+      .hamburger span {
+        width: 25px;
+        height: 3px;
+        background: var(--text-color);
+        border-radius: 2px;
+        transition: all 0.3s ease;
+      }
+
+      .main-content {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .hero-section {
+        text-align: center;
+        margin-bottom: 4rem;
+        padding: 3rem 0;
+        position: relative;
+      }
+
+      .hero-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 700;
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+      }
+
+      .hero-subtitle {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-color);
+        opacity: 0.9;
+        margin-bottom: 2rem;
+      }
+
+      .receipts-form-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 3rem;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        margin-bottom: 4rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .receipts-form-container::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: var(--gradient);
+        opacity: 0.05;
+        transform: rotate(30deg);
+        transition: opacity 0.3s ease;
+      }
+
+      .receipts-form-container:hover::before {
+        opacity: 0.1;
+      }
+
+      .receipts-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .form-group label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        opacity: 0.9;
+      }
+
+      .form-group select,
+      .form-group textarea,
+      .form-group input[type="file"] {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+      }
+
+      .form-group select:focus,
+      .form-group textarea:focus,
+      .form-group input[type="file"]:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 10px rgba(107, 52, 245, 0.3);
+      }
+
+      .light-mode .form-group select:focus,
+      .light-mode .form-group textarea:focus,
+      .light-mode .form-group input[type="file"]:focus {
+        box-shadow: 0 0 10px rgba(46, 134, 193, 0.3);
+      }
+
+      .form-group select:hover,
+      .form-group textarea:hover,
+      .form-group input[type="file"]:hover {
+        transform: scale(1.02);
+      }
+
+      .submit-btn {
+        background: var(--gradient);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
+        font-family: inherit;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .light-mode .submit-btn {
+        box-shadow: 0 4px 15px rgba(46, 134, 193, 0.3);
+      }
+
+      .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(107, 52, 245, 0.4);
+      }
+
+      .light-mode .submit-btn:hover {
+        box-shadow: 0 8px 25px rgba(46, 134, 193, 0.4);
+      }
+
+      .submit-btn.loading::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 3px solid white;
+        border-top: 3px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      @keyframes spin {
+        0% {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      .feedback-message {
+        font-size: 1rem;
+        font-weight: 600;
+        padding: 1rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 1rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .feedback-message.success {
+        background: var(--success-color);
+        color: white;
+      }
+
+      .feedback-message.error {
+        background: var(--error-color);
+        color: white;
+      }
+
+      .chart-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        margin-bottom: 4rem;
+      }
+
+      .chart-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin-bottom: 2rem;
+        text-align: center;
+        opacity: 1;
+      }
+
+      @media (max-width: 768px) {
+        .navbar {
+          padding: 1rem;
+        }
+
+        .nav-links {
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: var(--nav-bg);
+          backdrop-filter: blur(20px);
+          flex-direction: column;
+          padding: 2rem;
+          border-top: 1px solid var(--border);
+          gap: 1rem;
+        }
+
+        .nav-links.active {
+          display: flex;
+        }
+
+        .hamburger {
+          display: flex;
+        }
+
+        .main-content {
+          padding: 1rem;
+        }
+
+        .receipts-form-container {
+          padding: 2rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .hero-title {
+          font-size: 2rem;
+        }
+
+        .receipts-form-container {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="particles"></canvas>
+
+    <nav class="navbar">
+      <div class="nav-brand">
+        <img src="./images/mainlogo.png" id="logo" alt="NSS Logo" />
+      </div>
+      <ul class="nav-links">
+        <li><a href="/dashboard">📊 Dashboard</a></li>
+        <li><a href="/attendance">📝 Attendance</a></li>
+        <li><a href="/details">👥 Students</a></li>
+        <li><a href="/leaders">🏆 Leaderboard</a></li>
+        <li><a href="/receipts">🧾 Receipts</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button id="logout-btn">Logout</button>
+        <div class="mode-toggle" id="mode-toggle">
+          <div class="slider">🌙</div>
+        </div>
+      </div>
+      <div class="hamburger" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <section class="hero-section">
+        <h1 class="hero-title">Receipts Management</h1>
+        <p class="hero-subtitle">
+          Track and manage your NSS expenses with ease
+        </p>
+      </section>
+
+      <section class="receipts-form-container">
+        <form id="receipts-form" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="mode-of-payment">Mode of Payment</label>
+            <select id="mode-of-payment" name="mode-of-payment" required>
+              <option value="" disabled selected>Select payment method</option>
+              <option value="Cash">Cash</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="UPI">UPI</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reason">Reason for Expense</label>
+            <textarea
+              id="reason"
+              name="reason"
+              rows="4"
+              placeholder="Enter the reason for this expense"
+              required
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="receipt-image">Upload Receipt Image</label>
+            <input
+              type="file"
+              id="receipt-image"
+              name="receipt-image"
+              accept="image/*"
+              required
+            />
+          </div>
+          <button type="submit" class="submit-btn">Submit Receipt</button>
+          <div id="feedback-message" class="feedback-message"></div>
+        </form>
+      </section>
+
+      <section class="chart-container">
+        <h3 class="chart-title">Monthly Expenses Overview</h3>
+        <canvas id="expensesChart"></canvas>
+      </section>
+    </main>
+
+    <script>
+      // Particle System (same as dashboard)
+      const canvas = document.getElementById("particles");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const particlesArray = [];
+
+      class Particle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 3 + 1;
+          this.speedX = Math.random() * 0.8 - 0.4;
+          this.speedY = Math.random() * 0.8 - 0.4;
+          this.opacity = Math.random() * 0.6 + 0.2;
+          this.pulse = Math.random() * 0.02 + 0.01;
+          this.pulseDirection = 1;
+        }
+
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          this.opacity += this.pulse * this.pulseDirection;
+          if (this.opacity >= 0.8 || this.opacity <= 0.2) {
+            this.pulseDirection *= -1;
+          }
+          if (this.x > canvas.width) this.x = 0;
+          else if (this.x < 0) this.x = canvas.width;
+          if (this.y > canvas.height) this.y = 0;
+          else if (this.y < 0) this.y = canvas.height;
+        }
+
+        draw() {
+          const isLight = document.body.classList.contains("light-mode");
+          const color = isLight ? "46, 134, 193" : "107, 52, 245";
+          ctx.fillStyle = `rgba(${color}, ${this.opacity})`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < 120; i++) {
+        particlesArray.push(new Particle());
+      }
+
+      function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach((particle) => {
+          particle.update();
+          particle.draw();
+        });
+        requestAnimationFrame(animateParticles);
+      }
+
+      animateParticles();
+
+      window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      // Navigation
+      function toggleMenu() {
+        const navLinks = document.querySelector(".nav-links");
+        navLinks.classList.toggle("active");
+      }
+
+      // Logout
+      const logoutBtn = document.getElementById("logout-btn");
+      logoutBtn.addEventListener("click", () => {
+        document.cookie =
+          "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie =
+          "userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        localStorage.removeItem("email");
+        localStorage.removeItem("userEmail");
+        history.replaceState(null, null, "/");
+        window.location.href = "/";
+      });
+
+      // Mode Toggle
+      const modeToggle = document.getElementById("mode-toggle");
+      modeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("light-mode");
+        localStorage.setItem(
+          "theme",
+          document.body.classList.contains("light-mode") ? "light" : "dark"
+        );
+        modeToggle.querySelector(".slider").textContent =
+          document.body.classList.contains("light-mode") ? "☀️" : "🌙";
+        updateChartColors();
+      });
+
+      window.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("theme") === "light") {
+          document.body.classList.add("light-mode");
+          modeToggle.querySelector(".slider").textContent = "☀️";
+        } else {
+          modeToggle.querySelector(".slider").textContent = "🌙";
+        }
+      });
+
+      // Form Submission
+      const receiptsForm = document.getElementById("receipts-form");
+      const feedbackMessage = document.getElementById("feedback-message");
+      const submitBtn = document.querySelector(".submit-btn");
+
+      receiptsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        submitBtn.classList.add("loading");
+        submitBtn.disabled = true;
+        feedbackMessage.style.opacity = "0";
+
+        const formData = new FormData(receiptsForm);
+        try {
+          const response = await fetch("/api/receipts", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+          if (data.error) throw new Error(data.error);
+
+          feedbackMessage.textContent = "Receipt submitted successfully!";
+          feedbackMessage.className = "feedback-message success";
+          gsap.to(feedbackMessage, {
+            opacity: 1,
+            duration: 0.5,
+            ease: "power3.out",
+          });
+          receiptsForm.reset();
+
+          // Refresh chart data
+          loadExpensesData();
+        } catch (error) {
+          feedbackMessage.textContent =
+            "Error submitting receipt. Please try again.";
+          feedbackMessage.className = "feedback-message error";
+          gsap.to(feedbackMessage, {
+            opacity: 1,
+            duration: 0.5,
+            ease: "power3.out",
+          });
+        } finally {
+          submitBtn.classList.remove("loading");
+          submitBtn.disabled = false;
+        }
+      });
+
+      // Expenses Chart
+      let expensesChart;
+      async function loadExpensesData() {
+        try {
+          const response = await fetch("/api/expenses");
+          const data = await response.json();
+
+          // Sample data if API unavailable
+          const months = data.months || [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+          ];
+          const expenses = data.expenses || [1200, 1500, 800, 2000, 1700, 2500];
+
+          if (expensesChart) expensesChart.destroy();
+
+          const ctx = document.getElementById("expensesChart").getContext("2d");
+          expensesChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: months,
+              datasets: [
+                {
+                  label: "Monthly Expenses",
+                  data: expenses,
+                  borderColor: getComputedStyle(document.documentElement)
+                    .getPropertyValue("--accent-color")
+                    .trim(),
+                  backgroundColor: getComputedStyle(document.documentElement)
+                    .getPropertyValue("--gradient")
+                    .trim(),
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: 5,
+                  pointHoverRadius: 8,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: {
+                    padding: 20,
+                    usePointStyle: true,
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--text-color")
+                      .trim(),
+                    font: {
+                      size: 14,
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  grid: {
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--border")
+                      .trim(),
+                    opacity: 1,
+                  },
+                  ticks: {
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--text-color")
+                      .trim(),
+                    font: {
+                      size: 12,
+                    },
+                  },
+                },
+                y: {
+                  beginAtZero: true,
+                  grid: {
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--border")
+                      .trim(),
+                    opacity: 1,
+                  },
+                  ticks: {
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--text-color")
+                      .trim(),
+                    font: {
+                      size: 12,
+                    },
+                  },
+                },
+              },
+              animation: {
+                duration: 1500,
+                easing: "easeOutQuart",
+              },
+            },
+          });
+        } catch (error) {
+          console.error("Error loading expenses data:", error);
+        }
+      }
+
+      function updateChartColors() {
+        if (expensesChart) {
+          expensesChart.data.datasets[0].borderColor = getComputedStyle(
+            document.documentElement
+          )
+            .getPropertyValue("--accent-color")
+            .trim();
+          expensesChart.data.datasets[0].backgroundColor = getComputedStyle(
+            document.documentElement
+          )
+            .getPropertyValue("--gradient")
+            .trim();
+          expensesChart.options.scales.x.grid.color = getComputedStyle(
+            document.documentElement
+          )
+            .getPropertyValue("--border")
+            .trim();
+          expensesChart.options.scales.y.grid.color = getComputedStyle(
+            document.documentElement
+          )
+            .getPropertyValue("--border")
+            .trim();
+          expensesChart.options.scales.x.ticks.color = getComputedStyle(
+            document.documentElement
+          )
+            .getPropertyValue("--text-color")
+            .trim();
+          expensesChart.options.scales.y.ticks.color = getComputedStyle(
+            document.documentElement
+          )
+            .getPropertyValue("--text-color")
+            .trim();
+          expensesChart.options.plugins.legend.labels.color = getComputedStyle(
+            document.documentElement
+          )
+            .getPropertyValue("--text-color")
+            .trim();
+          expensesChart.update();
+        }
+      }
+
+      // GSAP Animations
+      document.addEventListener("DOMContentLoaded", () => {
+        gsap.from(".navbar", {
+          duration: 1,
+          y: -50,
+          opacity: 0,
+          ease: "power3.out",
+        });
+        gsap.from(".hero-section", {
+          duration: 1,
+          opacity: 0,
+          y: 50,
+          ease: "power3.out",
+          delay: 0.2,
+        });
+        gsap.from(".receipts-form-container", {
+          duration: 1,
+          opacity: 0,
+          y: 50,
+          ease: "power3.out",
+          delay: 0.4,
+        });
+        gsap.from(".form-group", {
+          duration: 1,
+          opacity: 0,
+          y: 30,
+          stagger: 0.1,
+          ease: "power3.out",
+          delay: 0.6,
+        });
+        gsap.from(".submit-btn", {
+          duration: 1,
+          opacity: 0,
+          scale: 0.8,
+          ease: "power3.out",
+          delay: 0.8,
+        });
+        gsap.from(".chart-container", {
+          duration: 1,
+          opacity: 0,
+          y: 50,
+          ease: "power3.out",
+          delay: 1,
+        });
+
+        // Hover animations for form elements
+        document
+          .querySelectorAll(
+            ".form-group select, .form-group textarea, .form-group input"
+          )
+          .forEach((el) => {
+            el.addEventListener("mouseenter", () => {
+              gsap.to(el, { scale: 1.02, duration: 0.3, ease: "power3.out" });
+            });
+            el.addEventListener("mouseleave", () => {
+              gsap.to(el, { scale: 1, duration: 0.3, ease: "power3.out" });
+            });
+            el.addEventListener("focus", () => {
+              gsap.to(el, {
+                scale: 1.05,
+                boxShadow: "0 0 10px rgba(107, 52, 245, 0.3)",
+                duration: 0.3,
+                ease: "power3.out",
+              });
+            });
+            el.addEventListener("blur", () => {
+              gsap.to(el, {
+                scale: 1,
+                boxShadow: "none",
+                duration: 0.3,
+                ease: "power3.out",
+              });
+            });
+          });
+
+        // Load expenses data
+        loadExpensesData();
+      });
+    </script>
+  </body>
+</html>

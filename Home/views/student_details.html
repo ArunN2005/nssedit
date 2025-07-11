@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Details</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script> 
+    function getCookie(name) {
+    const cookies = document.cookie.split("; ");
+    for (let cookie of cookies) {
+        let [key, value] = cookie.split("=");
+        if (key === name) return decodeURIComponent(value);
+    }
+    return null;
+}
+
+// Store email in localStorage after login
+const email = getCookie("userEmail");
+if (email) {
+    localStorage.setItem("email", email);
+    localStorage.setItem("userEmail",email);
+} else {
+    console.log("Email not found in cookies");
+}
+if (!localStorage.getItem("email")) {
+    window.location.href = "/";
+    }  
+    </script>
+  <style>
+    :root {
+      --bg-color: #0A0A0F;
+      --text-color: #E0E0E0;
+      --card-bg: rgba(20, 20, 30, 0.9);
+      --nav-bg: rgba(10, 10, 15, 0.9);
+      --input-bg: rgba(40, 40, 50, 0.8);
+      --table-cell-bg: rgba(40, 40, 50, 0.8);
+      --gradient: linear-gradient(135deg, #6B34F5, #00DDEB);
+      --shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      --border: rgba(107, 52, 245, 0.2);
+    }
+    .light-mode {
+            --bg-color: #F5F6FA;
+            --text-color: #333;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --nav-bg: rgba(245, 246, 250, 0.9);
+            --input-bg: rgba(240, 240, 245, 0.8);
+            --table-cell-bg: rgba(230, 230, 235, 0.8);
+            --gradient: linear-gradient(135deg, #FF758C, #FCD968);
+            --gradient-start: #FF758C;
+            --gradient-end: #FCD968;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            --border: rgba(255, 117, 140, 0.2);
+            --accent-color: #FF758C;
+        }
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+      overflow-x: hidden;
+      position: relative;
+      transition: background 0.3s, color 0.3s;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--nav-bg);
+      padding: 20px 40px;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .nav-links {
+      list-style: none;
+      display: flex;
+      align-items: center;
+    }
+    .nav-links li {
+      margin: 0 20px;
+    }
+    .nav-links a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: color 0.3s, transform 0.3s;
+    }
+    .nav-links a:hover {
+      color: #6B34F5;
+      transform: translateY(-2px);
+    }
+    .hamburger {
+      display: none;
+      font-size: 28px;
+      color: var(--text-color);
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        background: var(--nav-bg);
+        position: absolute;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        padding: 20px 0;
+        transition: background 0.3s;
+      }
+      .nav-links.active {
+        display: flex;
+      }
+      .hamburger {
+        display: block;
+      }
+      .nav-links li{
+        margin-bottom: 10px;
+      }
+    }
+    #logo {
+      height: 60px;
+      filter: brightness(1.2);
+    }
+    #logout-btn {
+      background: var(--gradient);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 15px rgba(107, 52, 245, 0.4);
+    }
+    #logout-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(107, 52, 245, 0.6);
+    }
+    #logout-btn:active {
+      background: #4a20b3;
+      transform: scale(0.98);
+    }
+    h1 {
+      text-align: center;
+      margin: 60px 0 40px;
+      color: var(--text-color);
+      font-size: 36px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      transition: color 0.3s;
+    }
+    #search {
+      display: block;
+      margin: 20px auto;
+      padding: 12px;
+      width: 90%;
+      max-width: 400px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text-color);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s, background 0.3s, color 0.3s;
+    }
+    #search:focus {
+      border-color: #6B34F5;
+      box-shadow: 0 0 5px rgba(107, 52, 245, 0.5);
+    }
+    .controls {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .controls button {
+      background: var(--gradient);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 15px rgba(107, 52, 245, 0.4);
+      margin: 0 10px;
+    }
+    .controls button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(107, 52, 245, 0.6);
+    }
+    .controls button:active {
+      transform: scale(0.98);
+      background: #4a20b3;
+    }
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 20px;
+      padding: 0 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+      background: var(--card-bg);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    th {
+      background: var(--gradient);
+      color: #fff;
+      font-weight: 600;
+    }
+    td {
+      background: var(--table-cell-bg);
+    }
+    tr:hover {
+      background: rgba(107, 52, 245, 0.1);
+      transition: 0.3s;
+    }
+    .grace-marks-th, .grace-marks-td {
+      display: none;
+    }
+    .grace-marks-visible .grace-marks-th,
+    .grace-marks-visible .grace-marks-td {
+      display: table-cell;
+    }
+    .send-cert-btn {
+      background: linear-gradient(135deg, #28a745, #34d058);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    }
+    .send-cert-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+    }
+    .name-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    @media (max-width: 600px) {
+      th, td {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .controls button {
+        margin: 5px 10px;
+      }
+      .send-cert-btn {
+        padding: 6px 8px;
+        font-size: 10px;
+      }
+    }
+    .mode-toggle {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background: var(--gradient);
+      border-radius: 25px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .slider {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 26px;
+      height: 26px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .light-mode .slider {
+      transform: translateX(30px);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <nav class="navbar">
+    <img src="/images/mainlogo.png" id="logo">
+    <ul class="nav-links">
+      <li><a href="/homepage">Home</a></li>
+      <li><a href="/attendance">Attendance</a></li>
+      <li><a href="/details">Student Details</a></li>
+      <li><a href="/leaders">Leaderboard</a></li>
+      <li><button id="logout-btn">Logout</button></li>
+      <li><div class="mode-toggle" id="mode-toggle"><div class="slider">🌙</div></div></li>
+    </ul>
+    <div class="hamburger" onclick="toggleMenu()">☰</div>
+  </nav>   
+  <h1>STUDENT DETAILS</h1>
+  <input type="text" id="search" placeholder="Search by name or roll number" oninput="filterStudents()" />
+  <div class="controls">
+    <button id="toggleGraceMarks">Show Grace Marks</button>
+    <button id="uploadGenerateBtn">Upload/Generate Details</button>
+  </div>
+  <div class="table-container">
+    <table id="studentTable">
+      <thead>
+        <tr>
+          <th>Roll Number</th>
+          <th>Name</th>
+          <th>Department</th>
+          <th>Year</th>
+          <th>Hours</th>
+          <th class="grace-marks-th">Grace Marks</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    // Particles
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const particlesArray = [];
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 1;
+        this.speedX = Math.random() * 0.5 - 0.25;
+        this.speedY = Math.random() * 0.5 - 0.25;
+        this.opacity = Math.random() * 0.5 + 0.2;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x > canvas.width) this.x = 0;
+        else if (this.x < 0) this.x = canvas.width;
+        if (this.y > canvas.height) this.y = 0;
+        else if (this.y < 0) this.y = canvas.height;
+      }
+      draw() {
+        ctx.fillStyle = document.body.classList.contains('light-mode') ? `rgba(255, 117, 140, ${this.opacity})` : `rgba(107, 52, 245, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    for (let i = 0; i < 100; i++) {
+      particlesArray.push(new Particle());
+    }
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Logout
+    const logoutBtn = document.getElementById('logout-btn');
+logoutBtn.addEventListener('click', () => {
+    // Clear cookies
+    document.cookie = 'userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    localStorage.removeItem('email');
+    localStorage.removeItem('userEmail');
+    history.replaceState(null, null, "/");
+    // Redirect to LoginPage
+    window.location.href = '/';
+});
+  
+    let students = [];
+    let showGraceMarks = false;
+  
+    function calculateGraceMarks(hours) {
+      if (hours >= 100) return 5;
+      if (hours >= 80) return 4;
+      if (hours >= 60) return 3;
+      if (hours >= 40) return 2;
+      if (hours >= 20) return 1;
+      return 0;
+    }
+  
+    window.onload = async () => {
+      try {
+        const response = await fetch('/api/students');
+        students = await response.json();
+        displayStudents(students);
+        gsap.from('.navbar', { duration: 1, y: -50, opacity: 0, ease: 'power3.out' });
+        gsap.from('h1', { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: 0.2 });
+        gsap.from('#search', { duration: 1, opacity: 0, scale: 0.9, ease: 'power3.out', delay: 0.4 });
+        gsap.from('.controls', { duration: 1, opacity: 0, y: 20, ease: 'power3.out', delay: 0.6 });
+        gsap.from('.table-container', { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: 0.8 });
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      }
+    };
+  
+    function displayStudents(data) {
+      const table = document.getElementById('studentTable');
+      const tableBody = table.getElementsByTagName('tbody')[0];
+      tableBody.innerHTML = '';
+  
+      data.forEach(student => {
+        const graceMarks = calculateGraceMarks(student.hoursWorked);
+        const row = `<tr>
+          <td>${student.rollNumber}</td>
+          <td class="name-cell">
+            ${student.name}
+            <button class="send-cert-btn" data-email="${student.email}" data-name="${student.name}" data-hours="${student.hoursWorked}">Send Certificate</button>
+          </td>
+          <td>${student.department}</td>
+          <td>${student.year}</td>
+          <td>${student.hoursWorked}</td>
+          <td class="grace-marks-td">${graceMarks}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+  
+      if (showGraceMarks) {
+        table.classList.add('grace-marks-visible');
+      } else {
+        table.classList.remove('grace-marks-visible');
+      }
+  
+      document.querySelectorAll('.send-cert-btn').forEach(button => {
+        button.addEventListener('click', async () => {
+          const email = button.getAttribute('data-email');
+          const name = button.getAttribute('data-name');
+          const hours = button.getAttribute('data-hours');
+          try {
+            const response = await fetch('/api/send-certificate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, name, hours })
+            });
+            if (response.ok) {
+              alert(`Certificate sent successfully to ${email}!`);
+            } else {
+              const errorText = await response.text();
+              alert(`Failed to send certificate: ${errorText}`);
+            }
+          } catch (error) {
+            console.error('Error sending certificate:', error);
+            alert('Error sending certificate. Please try again.');
+          }
+        });
+      });
+    }
+  
+    function filterStudents() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const filtered = students.filter(student =>
+        student.name.toLowerCase().includes(query) ||
+        student.rollNumber.toLowerCase().includes(query)
+      );
+      displayStudents(filtered);
+    }
+  
+    function toggleMenu() {
+      const navLinks = document.querySelector('.nav-links');
+      navLinks.classList.toggle('active');
+    }
+  
+    const toggleGraceMarksBtn = document.getElementById('toggleGraceMarks');
+    toggleGraceMarksBtn.addEventListener('click', () => {
+      showGraceMarks = !showGraceMarks;
+      toggleGraceMarksBtn.textContent = showGraceMarks ? 'Hide Grace Marks' : 'Show Grace Marks';
+      displayStudents(students);
+    });
+  
+    const uploadGenerateBtn = document.getElementById('uploadGenerateBtn');
+    uploadGenerateBtn.addEventListener('click', () => {
+      window.location.href = '/excel';
+    });
+
+    // Mode Toggle
+    const modeToggle = document.getElementById('mode-toggle');
+    modeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+      modeToggle.querySelector('.slider').textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+    });
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light-mode');
+        modeToggle.querySelector('.slider').textContent = '☀️';
+      } else {
+        modeToggle.querySelector('.slider').textContent = '🌙';
+      }
+    });
+  </script>
+</body>
+</html>

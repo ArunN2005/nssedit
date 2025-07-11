@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSS Portal - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script> 
+    function getCookie(name) {
+      const cookies = document.cookie.split("; ");
+      for (let cookie of cookies) {
+        let [key, value] = cookie.split("=");
+        if (key === name) return decodeURIComponent(value);
+      }
+      return null;
+    }
+
+    const email = getCookie("userEmail");
+    if (email) {
+      localStorage.setItem("email", email);
+      localStorage.setItem("userEmail", email);
+    } else {
+      console.log("Email not found in cookies");
+    }
+    if (!localStorage.getItem("email")) {
+      window.location.href = "/";
+    }  
+  </script>
+  <style>
+    :root {
+      --bg-color: #0A0A0F;
+      --text-color: #E0E0E0;
+      --card-bg: rgba(20, 20, 30, 0.95);
+      --nav-bg: rgba(10, 10, 15, 0.95);
+      --input-bg: rgba(40, 40, 50, 0.9);
+      --gradient: linear-gradient(135deg, #6B34F5, #00DDEB);
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      --border: rgba(107, 52, 245, 0.3);
+      --accent-color: #6B34F5;
+      --success-color: #3B82F6;
+      --error-color: #EF4444;
+      --warning-color: #F59E0B;
+    }
+    
+    .light-mode {
+      --bg-color: #FAFBFC;
+      --text-color: #1F2937;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --nav-bg: rgba(249, 250, 251, 0.95);
+      --input-bg: rgba(243, 244, 246, 0.9);
+      --gradient: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      --border: rgba(255, 107, 107, 0.3);
+      --accent-color: #FF6B6B;
+      --success-color: #3B82F6;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Cal Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      overflow-x: hidden;
+      overflow-y: auto;
+      line-height: 1.6;
+      min-height: 100vh;
+      height: auto;
+    }
+    
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh; /* Changed to viewport height */
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--nav-bg);
+      padding: 1rem 2rem;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-wrap: wrap;
+      will-change: transform, opacity;
+    }
+    
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    #logo {
+      height: 50px;
+      filter: brightness(1.2) drop-shadow(0 0 10px rgba(107, 52, 245, 0.3));
+      transition: all 0.3s ease;
+    }
+    
+    #logo:hover {
+      transform: scale(1.05);
+      filter: brightness(1.3) drop-shadow(0 0 15px rgba(107, 52, 245, 0.5));
+    }
+    
+    .nav-links {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin: 0 1rem;
+    }
+    
+    .nav-links a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .nav-links a::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent-color);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .nav-links a:hover::before {
+      transform: translateX(0);
+    }
+    
+    .nav-links a:hover {
+      color: var(--accent-color);
+      transform: translateY(-2px);
+    }
+    
+    .nav-links a:focus {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+    
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    #logout-btn {
+      background: var(--gradient);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
+      font-family: inherit;
+    }
+    
+    #logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(107, 52, 245, 0.4);
+    }
+    
+    #logout-btn:focus {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+    
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      gap: 5px;
+      z-index: 1100;
+    }
+    
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: var(--text-color);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+    
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+    
+    .main-content {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: 100vh;
+      z-index: 5;
+      will-change: opacity;
+      overflow: hidden; /* Prevent internal content from causing scroll */
+    }
+    
+    .hero-section {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2rem 0;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .hero-title {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-color);
+      opacity: 0.8;
+      margin-bottom: 1.5rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+      z-index: 20;
+      min-height: 200px;
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      z-index: 21;
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient);
+      border-radius: 16px 16px 0 0;
+      z-index: 1;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 15px 30px rgba(107, 52, 245, 0.2);
+    }
+    
+    .stat-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-color);
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-color);
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+      z-index: 10;
+    }
+    
+    .chart-container {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      z-index: 10;
+      min-height: 300px;
+      aspect-ratio: 1.5 / 1; /* Ensure consistent proportions */
+    }
+    
+    .chart-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .quick-actions {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      z-index: 10;
+    }
+    
+    .quick-actions h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .action-button {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-color);
+      text-decoration: none;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    
+    .action-button:hover {
+      background: var(--accent-color);
+      color: white;
+      transform: translateX(4px);
+      box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
+    }
+    
+    .action-button:focus {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+    
+    .action-icon {
+      font-size: 1.25rem;
+    }
+    
+    .nss-info {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      z-index: 10;
+    }
+    
+    .nss-info::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: var(--gradient);
+      opacity: 0.05;
+      transform: rotate(30deg);
+      transition: opacity 0.3s ease;
+    }
+    
+    .nss-info:hover::before {
+      opacity: 0.1;
+    }
+    
+    .nss-logo {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 1.5rem;
+      filter: drop-shadow(0 0 15px rgba(107, 52, 245, 0.3));
+    }
+    
+    .nss-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+    }
+    
+    .nss-motto {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-color);
+      opacity: 0.8;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+    
+    .nss-description {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text-color);
+      opacity: 0.9;
+      text-align: justify;
+      margin-bottom: 1rem;
+    }
+    
+    .mode-toggle {
+      width: 60px;
+      height: 30px;
+      background: var(--gradient);
+      border-radius: 50px;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(107, 52, 245, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    
+    .mode-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(107, 52, 245, 0.4);
+    }
+    
+    .mode-toggle:focus {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+    
+    .slider {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 26px;
+      height: 26px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    .light-mode .slider {
+      transform: translateX(30px);
+    }
+    
+    .chatbot-toggle {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--gradient);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      cursor: pointer;
+      z-index: 2000;
+      box-shadow: 0 6px 20px rgba(107, 52, 245, 0.4);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .chatbot-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(107, 52, 245, 0.5);
+    }
+    
+    .chatbot-toggle:focus {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+    
+    .chatbot-container {
+      position: fixed;
+      bottom: 100px;
+      right: 1.5rem;
+      width: 360px;
+      max-width: calc(100vw - 3rem);
+      height: 500px;
+      max-height: 80vh;
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      display: none;
+      flex-direction: column;
+      z-index: 1500;
+      overflow: hidden;
+      pointer-events: auto;
+      will-change: transform, opacity;
+    }
+    
+    .chatbot-container.active {
+      display: flex;
+    }
+    
+    .chatbot-header {
+      background: var(--gradient);
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 2;
+    }
+    
+    .chatbot-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    
+    .chatbot-header .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+    
+    .chatbot-header .close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .chatbot-header .close-btn:focus {
+      outline: 2px solid white;
+      outline-offset: 2px;
+    }
+    
+    .chatbot-body {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      z-index: 1;
+    }
+    
+    .chat-message {
+      max-width: 85%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      word-wrap: break-word;
+      animation: messageSlide 0.3s ease-out;
+    }
+    
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .chat-message.user {
+      background: var(--gradient);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .chat-message.bot {
+      background: var(--input-bg);
+      color: var(--text-color);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    
+    .chatbot-footer {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.5rem;
+      z-index: 3;
+    }
+    
+    .chatbot-footer input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text-color);
+      font-size: 0.85rem;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.3s ease;
+      z-index: 4;
+      pointer-events: auto;
+    }
+    
+    .chatbot-footer input:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 5px rgba(107, 52, 245, 0.3);
+    }
+    
+    .chatbot-footer button {
+      background: var(--gradient);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      z-index: 4;
+    }
+    
+    .chatbot-footer button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(107, 52, 245, 0.3);
+    }
+    
+    .chatbot-footer button:focus {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+    
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .chart-container {
+        aspect-ratio: 1 / 1; /* Square for smaller screens */
+      }
+      
+      .chatbot-container {
+        width: 320px;
+        max-width: calc(100vw - 2rem);
+        height: 450px;
+        max-height: 70vh;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 1rem 1.5rem;
+        flex-wrap: wrap;
+      }
+      
+      .nav-links {
+        display: none;
+        position: fixed;
+        top: 4rem;
+        left: 0;
+        right: 0;
+        background: var(--nav-bg);
+        flex-direction: column;
+        padding: 1.5rem;
+        border-top: 1px solid var(--border);
+        gap: 1rem;
+        z-index: 600;
+        width: 100%;
+      }
+      
+      .nav-links.active {
+        display: flex;
+      }
+      
+      .hamburger {
+        display: flex;
+      }
+      
+      .main-content {
+        padding: 1rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .chart-container {
+        min-height: 250px;
+      }
+      
+      .chatbot-container {
+        width: calc(100vw - 2rem);
+        right: 1rem;
+        left: 1rem;
+        height: 60vh;
+        max-height: 70vh;
+      }
+      
+      .chatbot-toggle {
+        width: 50px;
+        height: 50px;
+        bottom: 1rem;
+        right: 1rem;
+        font-size: 1rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 1.75rem;
+      }
+      
+      .hero-subtitle {
+        font-size: 1rem;
+      }
+      
+      .stat-card {
+        padding: 1rem;
+      }
+      
+      .stat-icon {
+        font-size: 2rem;
+      }
+      
+      .stat-value {
+        font-size: 1.75rem;
+      }
+      
+      .stat-label {
+        font-size: 0.75rem;
+      }
+      
+      .nss-info {
+        padding: 1.5rem;
+      }
+      
+      .nss-logo {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .nss-title {
+        font-size: 1.5rem;
+      }
+      
+      .nss-motto {
+        font-size: 1rem;
+      }
+      
+      .nss-description {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="./images/mainlogo.png" id="logo" alt="NSS Logo" aria-label="NSS Logo">
+    </div>
+    <ul class="nav-links">
+      <li><a href="/attendance" aria-label="View Attendance">📊 Attendance</a></li>
+      <li><a href="/details" aria-label="Manage Students">👥 Students</a></li>
+      <li><a href="/leaders" aria-label="View Leaderboard">🏆 Leaderboard</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button id="logout-btn" aria-label="Log out">Logout</button>
+      <div class="mode-toggle" id="mode-toggle" aria-label="Toggle light/dark mode">
+        <div class="slider">🌙</div>
+      </div>
+    </div>
+    <div class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+  
+  <main class="main-content">
+    <section class="hero-section">
+      <h1 class="hero-title">NSS Portal Dashboard</h1>
+      <p class="hero-subtitle">Empowering Communities Through Service</p>
+    </section>
+    
+    <section class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon" aria-hidden="true">👥</span>
+        <div class="stat-value" id="total-students">0</div>
+        <div class="stat-label">Total Students</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" aria-hidden="true">⏰</span>
+        <div class="stat-value" id="total-hours">0</div>
+        <div class="stat-label">Service Hours</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" aria-hidden="true">🎯</span>
+        <div class="stat-value" id="active-volunteers">0</div>
+        <div class="stat-label">Active Volunteers</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" aria-hidden="true">📈</span>
+        <div class="stat-value" id="completion-rate">0%</div>
+        <div class="stat-label">Completion Rate</div>
+      </div>
+    </section>
+    
+    <section class="dashboard-grid">
+      <div class="chart-container">
+        <h3 class="chart-title">Student Progress Overview</h3>
+        <canvas id="progressChart" width="400" height="300"></canvas>
+      </div>
+      
+      <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <a href="/attendance" class="action-button" aria-label="Mark Attendance">
+          <span class="action-icon" aria-hidden="true">📝</span>
+          Mark Attendance
+        </a>
+        <a href="/scanner" class="action-button" aria-label="QR Scanner">
+          <span class="action-icon" aria-hidden="true">📱</span>
+          QR Scanner
+        </a>
+        <a href="/details" class="action-button" aria-label="Manage Students">
+          <span class="action-icon" aria-hidden="true">👥</span>
+          Manage Students
+        </a>
+        <a href="/excel" class="action-button" aria-label="Import/Export Data">
+          <span class="action-icon" aria-hidden="true">📊</span>
+          Import/Export Data
+        </a>
+        <a href="/leaders" class="action-button" aria-label="View Leaderboard">
+          <span class="action-icon" aria-hidden="true">🏆</span>
+          View Leaderboard
+        </a>
+      </div>
+    </section>
+    
+    <section class="nss-info">
+      <img src="./images/logo.png" alt="NSS Logo" class="nss-logo" aria-hidden="true">
+      <h2 class="nss-title">National Service Scheme</h2>
+      <p class="nss-motto">"Not Me But You"</p>
+      <p class="nss-description">
+        The National Service Scheme (NSS) is a government-sponsored public service program that aims to develop the personality and character of students through voluntary community service. Our portal streamlines the management of NSS activities, tracking student participation, and fostering a culture of service and social responsibility.
+      </p>
+      <p class="nss-description">
+        Through innovative technology and user-friendly interfaces, we empower coordinators to efficiently manage volunteers, track service hours, and recognize outstanding contributions to community development initiatives.
+      </p>
+    </section>
+  </main>
+
+  <button class="chatbot-toggle" onclick="toggleChatbot()" aria-label="Toggle chatbot">🤖</button>
+  
+  <div class="chatbot-container" id="chatbot-container">
+    <div class="chatbot-header">
+      <h3>NSS Assistant</h3>
+      <button class="close-btn" onclick="toggleChatbot()" aria-label="Close chatbot">✕</button>
+    </div>
+    <div class="chatbot-body" id="chatbot-body">
+      <div class="chat-message bot">
+        Hello! I'm your NSS Assistant. I can help you with event planning, student management, and answering questions about NSS activities. How can I assist you today?
+      </div>
+    </div>
+    <div class="chatbot-footer">
+      <input type="text" id="chatbot-input" placeholder="Ask me anything about NSS..." onkeypress="if(event.key === 'Enter') sendMessage()" aria-label="Chatbot input">
+      <button onclick="sendMessage()" aria-label="Send message">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Particle System
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight; // Use viewport height
+    const particlesArray = [];
+    
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedX = Math.random() * 0.6 - 0.3;
+        this.speedY = Math.random() * 0.6 - 0.3;
+        this.opacity = Math.random() * 0.5 + 0.2;
+        this.pulse = Math.random() * 0.015 + 0.01;
+        this.pulseDirection = 1;
+      }
+      
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.opacity += this.pulse * this.pulseDirection;
+        if (this.opacity >= 0.7 || this.opacity <= 0.2) {
+          this.pulseDirection *= -1;
+        }
+        if (this.x > canvas.width) this.x = 0;
+        else if (this.x < 0) this.x = canvas.width;
+        if (this.y > canvas.height) this.y = 0;
+        else if (this.y < 0) this.y = canvas.height;
+      }
+      
+      draw() {
+        const isLight = document.body.classList.contains('light-mode');
+        const color = isLight ? '255, 107, 107' : '107, 52, 245';
+        ctx.fillStyle = `rgba(${color}, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    for (let i = 0; i < 80; i++) {
+      particlesArray.push(new Particle());
+    }
+    
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    
+    animateParticles();
+    
+    // Debounced Resize Handler
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight; // Update to viewport height
+      }, 100);
+    });
+
+    // Navigation
+    function toggleMenu() {
+      const navLinks = document.querySelector('.nav-links');
+      const hamburger = document.querySelector('.hamburger');
+      navLinks.classList.toggle('active');
+      hamburger.classList.toggle('active');
+    }
+
+    // Logout
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.addEventListener('click', () => {
+      document.cookie = 'userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      localStorage.removeItem('email');
+      localStorage.removeItem('userEmail');
+      history.replaceState(null, null, "/");
+      window.location.href = '/';
+    });
+
+    // Mode Toggle
+    const modeToggle = document.getElementById('mode-toggle');
+    modeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+      modeToggle.querySelector('.slider').textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+      gsap.to(modeToggle, {
+        scale: 0.9,
+        duration: 0.1,
+        yoyo: true,
+        repeat: 1,
+        ease: 'power2.inOut'
+      });
+    });
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light-mode');
+        modeToggle.querySelector('.slider').textContent = '☀️';
+      } else {
+        modeToggle.querySelector('.slider').textContent = '🌙';
+      }
+    });
+
+    // Dashboard Data Loading
+    async function loadDashboardData() {
+      try {
+        const response = await fetch('/api/students');
+        if (!response.ok) throw new Error('Failed to fetch student data');
+        const students = await response.json();
+        console.log('Student data:', students); // Debug data
+        
+        const totalStudents = students.length || 0;
+        const totalHours = students.reduce((sum, student) => sum + (student.hoursWorked || 0), 0);
+        const activeVolunteers = students.filter(student => student.hoursWorked > 0).length || 0;
+        const completionRate = totalStudents > 0 ? Math.round((activeVolunteers / totalStudents) * 100) : 0;
+        
+        animateCounter('total-students', totalStudents);
+        animateCounter('total-hours', totalHours);
+        animateCounter('active-volunteers', activeVolunteers);
+        animateCounter('completion-rate', completionRate, '%');
+        
+        createProgressChart(students);
+        
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        const statsGrid = document.getElementById('stats-grid');
+        statsGrid.innerHTML = `
+          <div class="stat-card" style="grid-column: 1 / -1; text-align: center;">
+            <div class="stat-label" style="color: var(--error-color);">
+              Failed to load stats. Please try again later.
+            </div>
+          </div>
+        `;
+        statsGrid.style.opacity = '1';
+        statsGrid.style.visibility = 'visible';
+        
+        const chartContainer = document.querySelector('.chart-container');
+        chartContainer.innerHTML = `
+          <h3 class="chart-title">Student Progress Overview</h3>
+          <div style="text-align: center; color: var(--error-color); padding: 1rem;">
+            Failed to load chart. Please try again later.
+          </div>
+        `;
+      }
+    }
+    
+    function animateCounter(elementId, targetValue, suffix = '') {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      const duration = 1500;
+      const startTime = performance.now();
+      
+      function updateCounter(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const currentValue = Math.floor(targetValue * progress);
+        
+        element.textContent = currentValue + suffix;
+        
+        if (progress < 1) {
+          requestAnimationFrame(updateCounter);
+        }
+      }
+      
+      requestAnimationFrame(updateCounter);
+    }
+    
+    function createProgressChart(students) {
+      const canvas = document.getElementById('progressChart');
+      if (!canvas) {
+        console.error('Chart canvas not found');
+        return;
+      }
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.error('Failed to get chart canvas context');
+        return;
+      }
+      
+      const ranges = {
+        '0 Hours': 0,
+        '1-20 Hours': 0,
+        '21-40 Hours': 0,
+        '41-60 Hours': 0,
+        '61-80 Hours': 0,
+        '81+ Hours': 0
+      };
+      
+      if (Array.isArray(students) && students.length > 0) {
+        students.forEach(student => {
+          const hours = student.hoursWorked || 0;
+          if (hours === 0) ranges['0 Hours']++;
+          else if (hours <= 20) ranges['1-20 Hours']++;
+          else if (hours <= 40) ranges['21-40 Hours']++;
+          else if (hours <= 60) ranges['41-60 Hours']++;
+          else if (hours <= 80) ranges['61-80 Hours']++;
+          else ranges['81+ Hours']++;
+        });
+      } else {
+        console.warn('No valid student data for chart');
+      }
+      
+      console.log('Chart ranges:', ranges); // Debug chart data
+      
+      // Destroy existing chart if any
+      if (canvas.chart) {
+        canvas.chart.destroy();
+      }
+      
+      canvas.chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(ranges),
+          datasets: [{
+            data: Object.values(ranges),
+            backgroundColor: [
+              '#EF4444',
+              '#F59E0B',
+              '#10B981',
+              '#3B82F6',
+              '#8B5CF6',
+              '#06B6D4'
+            ],
+            borderWidth: 0,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                font: { size: 12 },
+                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Chatbot Functionality
+    const chatbotContainer = document.getElementById('chatbot-container');
+    const chatbotBody = document.getElementById('chatbot-body');
+    const chatbotInput = document.getElementById('chatbot-input');
+
+    function toggleChatbot() {
+      const isActive = chatbotContainer.classList.toggle('active');
+      if (isActive) {
+        chatbotInput.focus();
+        gsap.to(chatbotContainer, {
+          opacity: 1,
+          y: 0,
+          duration: 0.3,
+          ease: 'power3.out',
+          onComplete: () => {
+            chatbotContainer.style.pointerEvents = 'auto';
+            console.log('Chatbot opened, pointer-events: auto');
+          }
+        });
+      } else {
+        gsap.to(chatbotContainer, {
+          opacity: 0,
+          y: 20,
+          duration: 0.3,
+          ease: 'power3.in',
+          onComplete: () => {
+            chatbotContainer.style.pointerEvents = 'none';
+            console.log('Chatbot closed, pointer-events: none');
+          }
+        });
+      }
+    }
+
+    async function sendMessage() {
+      const message = chatbotInput.value.trim();
+      if (!message) return;
+
+      const userMessage = document.createElement('div');
+      userMessage.className = 'chat-message user';
+      userMessage.textContent = message;
+      chatbotBody.appendChild(userMessage);
+      chatbotInput.value = '';
+
+      chatbotBody.scrollTop = chatbotBody.scrollHeight;
+
+      try {
+        const response = await fetch('/api/chatbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        const botMessage = document.createElement('div');
+        botMessage.className = 'chat-message bot';
+        botMessage.style.background = 'rgba(59, 130, 246, 0.1)';
+        botMessage.style.border = '1px solid rgba(59, 130, 246, 0.3)';
+        botMessage.style.color = 'var(--success-color)';
+        botMessage.innerHTML = data.reply;
+        chatbotBody.appendChild(botMessage);
+
+        chatbotBody.scrollTop = chatbotBody.scrollHeight;
+      } catch (error) {
+        console.error('Error with chatbot:', error);
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'chat-message bot';
+        errorMessage.style.background = 'rgba(239, 68, 68, 0.1)';
+        errorMessage.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+        errorMessage.style.color = 'var(--error-color)';
+        errorMessage.textContent = 'Sorry, I encountered an error. Please try again.';
+        chatbotBody.appendChild(errorMessage);
+        chatbotBody.scrollTop = chatbotBody.scrollHeight;
+      }
+    }
+
+    // Debug Input Clicks
+    chatbotInput.addEventListener('click', () => {
+      console.log('Chatbot input clicked');
+    });
+    chatbotInput.addEventListener('input', () => {
+      console.log(`Chatbot input value: ${chatbotInput.value}`);
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      gsap.from('.navbar', { duration: 0.8, y: -50, opacity: 0, ease: 'power3.out' });
+      gsap.from('.hero-section', { duration: 0.8, opacity: 0, y: 30, ease: 'power3.out', delay: 0.1 });
+      gsap.from('.stat-card', { 
+        duration: 0.8, 
+        opacity: 0, 
+        y: 30, 
+        stagger: 0.1, 
+        ease: 'power3.out', 
+        delay: 0.2,
+        onComplete: () => {
+          document.querySelectorAll('.stat-card').forEach(card => {
+            card.style.opacity = '1';
+            card.style.visibility = 'visible';
+          });
+        }
+      });
+      gsap.from('.dashboard-grid > *', { duration: 0.8, opacity: 0, y: 30, stagger: 0.1, ease: 'power3.out', delay: 0.3 });
+      gsap.from('.nss-info', { duration: 0.8, opacity: 0, y: 30, ease: 'power3.out', delay: 0.4 });
+      
+      loadDashboardData();
+    });
+  </script>
+</body>
+</html>

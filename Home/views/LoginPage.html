@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="Author" content="Keshav S">
+  <title>NSS Portal - Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0A0A0F;
+      --text-color: #E0E0E0;
+      --card-bg: rgba(20, 20, 30, 0.95);
+      --nav-bg: rgba(10, 10, 15, 0.95);
+      --input-bg: rgba(40, 40, 50, 0.9);
+      --gradient: linear-gradient(135deg, #6B34F5, #00DDEB);
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      --border: rgba(107, 52, 245, 0.3);
+      --accent-color: #6B34F5;
+      --success-color: #10B981;
+      --error-color: #EF4444;
+      --warning-color: #F59E0B;
+    }
+    .light-mode {
+      --bg-color: #FAFBFC;
+      --text-color: #1F2937;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --nav-bg: rgba(249, 250, 251, 0.95);
+      --input-bg: rgba(243, 244, 246, 0.9);
+      --gradient: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      --border: rgba(255, 107, 107, 0.3);
+      --accent-color: #FF6B6B;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Cal Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+      overflow-x: hidden;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      min-height: 100vh;
+    }
+    
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .intro-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 1;
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .intro-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+      display: none;
+    }
+    
+    .intro-logo {
+      height: 120px;
+      filter: brightness(1.2) drop-shadow(0 0 20px rgba(107, 52, 245, 0.5));
+      opacity: 0;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001;
+    }
+    
+    .intro-animation {
+      width: 250px;
+      height: 250px;
+      opacity: 0;
+    }
+    
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+      z-index: 5; /* Ensure main content is above particles */
+    }
+    
+    .logo {
+      height: 100px;
+      filter: brightness(1.2) drop-shadow(0 0 15px rgba(107, 52, 245, 0.4));
+      margin-bottom: 2rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .login-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 3rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 450px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10; /* Ensure login card is above other elements */
+      pointer-events: auto; /* Ensure interactivity */
+    }
+    
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient);
+      border-radius: 24px 24px 0 0;
+      z-index: 1; /* Keep decorative bar below inputs */
+    }
+    
+    .login-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      z-index: 2; /* Above card's decorative bar */
+    }
+    
+    .login-title {
+      font-size: 2rem;
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .login-subtitle {
+      color: var(--text-color);
+      opacity: 0.7;
+      font-size: 1rem;
+      font-weight: 400;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 3; /* Ensure inputs are above card elements */
+    }
+    
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--text-color);
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 4; /* Ensure inputs are clickable */
+      pointer-events: auto; /* Ensure interactivity */
+    }
+    
+    .form-input:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 4px rgba(107, 52, 245, 0.1);
+    }
+    
+    .form-input::placeholder {
+      color: var(--text-color);
+      opacity: 0.5;
+    }
+    
+    .login-button {
+      width: 100%;
+      padding: 1rem 2rem;
+      background: var(--gradient);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 25px rgba(107, 52, 245, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 1rem;
+      position: relative;
+      overflow: hidden;
+      z-index: 3; /* Above card elements */
+    }
+    
+    .login-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .login-button:hover::before {
+      left: 100%;
+    }
+    
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(107, 52, 245, 0.4);
+    }
+    
+    .login-button:active {
+      transform: translateY(0);
+    }
+    
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--error-color);
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-size: 0.875rem;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+      z-index: 3; /* Above card elements */
+    }
+    
+    .mode-toggle {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      width: 70px;
+      height: 35px;
+      background: var(--gradient);
+      border-radius: 50px;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(107, 52, 245, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100; /* Above most elements, below intro-overlay */
+    }
+    
+    .mode-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(107, 52, 245, 0.4);
+    }
+    
+    .slider {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 29px;
+      height: 29px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .light-mode .slider {
+      transform: translateX(35px);
+    }
+    
+    .features-grid {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      max-width: 800px;
+      width: 100%;
+      padding: 0 2rem;
+      opacity: 0;
+      z-index: 2; /* Below login card */
+    }
+    
+    .feature-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(107, 52, 245, 0.2);
+    }
+    
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    
+    .feature-title {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-color);
+      margin-bottom: 0.25rem;
+    }
+    
+    .feature-desc {
+      font-size: 0.75rem;
+      color: var(--text-color);
+      opacity: 0.7;
+    }
+    
+    @media (max-width: 768px) {
+      .main-container {
+        padding: 1rem;
+      }
+      
+      .login-card {
+        padding: 2rem;
+        margin: 1rem 0;
+      }
+      
+      .mode-toggle {
+        top: 1rem;
+        right: 1rem;
+        width: 60px;
+        height: 30px;
+      }
+      
+      .slider {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+      }
+      
+      .light-mode .slider {
+        transform: translateX(30px);
+      }
+      
+      .features-grid {
+        position: static;
+        transform: none;
+        margin-top: 2rem;
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .login-title {
+        font-size: 1.5rem;
+      }
+      
+      .login-card {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  
+  <img src="/images/mainlogo.png" alt="Logo" class="intro-logo" id="intro-logo">
+  
+  <div class="intro-overlay" id="intro-overlay">
+    <div class="intro-animation" id="intro-animation"></div>
+  </div>
+  
+  <div class="mode-toggle" id="mode-toggle">
+    <div class="slider">🌙</div>
+  </div>
+  
+  <div class="main-container">
+    <img src="/images/mainlogo.png" alt="NSS Logo" class="logo" id="logo">
+    
+    <div class="login-card" id="login-card">
+      <div class="login-header">
+        <h1 class="login-title">Welcome Back</h1>
+        <p class="login-subtitle">Sign in to access your NSS Portal</p>
+      </div>
+      
+      <form action="/login" method="POST">
+        <div id="error-message" class="error-message" style="display: none;"></div>
+        
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" name="username" class="form-input" placeholder="Enter your username" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
+        </div>
+        
+        <button type="submit" class="login-button">Sign In</button>
+      </form>
+    </div>
+    
+    <div class="features-grid" id="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <div class="feature-title">Analytics Dashboard</div>
+        <div class="feature-desc">Track student progress and engagement</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <div class="feature-title">Smart Attendance</div>
+        <div class="feature-desc">QR code scanning and bulk operations</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🏆</span>
+        <div class="feature-title">Leaderboards</div>
+        <div class="feature-desc">Gamified student recognition system</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🤖</span>
+        <div class="feature-title">AI Assistant</div>
+        <div class="feature-desc">Event planning and management help</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Particle System
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const particlesArray = [];
+    
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedX = Math.random() * 0.8 - 0.4;
+        this.speedY = Math.random() * 0.8 - 0.4;
+        this.opacity = Math.random() * 0.6 + 0.2;
+        this.pulse = Math.random() * 0.02 + 0.01;
+        this.pulseDirection = 1;
+      }
+      
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.opacity += this.pulse * this.pulseDirection;
+        if (this.opacity >= 0.8 || this.opacity <= 0.2) {
+          this.pulseDirection *= -1;
+        }
+        if (this.x > canvas.width) this.x = 0;
+        else if (this.x < 0) this.x = canvas.width;
+        if (this.y > canvas.height) this.y = 0;
+        else if (this.y < 0) this.y = canvas.height;
+      }
+      
+      draw() {
+        const isLight = document.body.classList.contains('light-mode');
+        const color = isLight ? '255, 107, 107' : '107, 52, 245';
+        ctx.fillStyle = `rgba(${color}, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = `rgba(${color}, ${this.opacity * 0.5})`;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+    
+    for (let i = 0; i < 120; i++) {
+      particlesArray.push(new Particle());
+    }
+    
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    
+    animateParticles();
+    
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Intro Animation
+    document.addEventListener('DOMContentLoaded', () => {
+      const tl = gsap.timeline();
+      tl.to('#intro-logo', {
+        opacity: 1,
+        scale: 1.3,
+        duration: 1.2,
+        ease: 'elastic.out(1, 0.6)',
+      })
+      .to('#intro-logo', {
+        scale: 1,
+        duration: 0.6,
+        ease: 'power3.inOut',
+      })
+      .to('#intro-logo', {
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.in',
+      }, '-=0.2')
+      .to('#intro-overlay', {
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.in',
+        onComplete: () => {
+          const introOverlay = document.getElementById('intro-overlay');
+          introOverlay.classList.add('hidden');
+          introOverlay.style.pointerEvents = 'none';
+          document.getElementById('intro-logo').style.display = 'none';
+          showMainContent();
+        },
+      });
+    });
+    
+    function showMainContent() {
+      const tl = gsap.timeline();
+      tl.to('#logo', {
+        opacity: 1,
+        visibility: 'visible',
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out'
+      })
+      .to('#login-card', {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        onComplete: () => {
+          const loginCard = document.getElementById('login-card');
+          loginCard.classList.add('visible');
+          loginCard.style.pointerEvents = 'auto';
+        }
+      }, '-=0.4')
+      .to('#features-grid', {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out'
+      }, '-=0.4')
+      .from('.feature-card', {
+        opacity: 0,
+        y: 30,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: 'power3.out'
+      }, '-=0.2');
+    }
+
+    // Error Handling
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    if (error) {
+      const errorMessageDiv = document.getElementById("error-message");
+      errorMessageDiv.textContent = error;
+      errorMessageDiv.style.display = "block";
+      gsap.from(errorMessageDiv, { 
+        duration: 0.6, 
+        opacity: 0, 
+        y: -20,
+        ease: 'power3.out'
+      });
+    }
+
+    // Mode Toggle
+    const modeToggle = document.getElementById('mode-toggle');
+    modeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      const isLight = document.body.classList.contains('light-mode');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      modeToggle.querySelector('.slider').textContent = isLight ? '☀️' : '🌙';
+      gsap.to(modeToggle, {
+        scale: 0.9,
+        duration: 0.1,
+        yoyo: true,
+        repeat: 1,
+        ease: 'power2.inOut'
+      });
+    });
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        modeToggle.querySelector('.slider').textContent = '☀️';
+      } else {
+        modeToggle.querySelector('.slider').textContent = '🌙';
+      }
+    });
+
+    // Form Enhancements and Submission
+    const form = document.querySelector('form');
+    const formInputs = document.querySelectorAll('.form-input');
+    
+    formInputs.forEach(input => {
+      input.addEventListener('input', () => {
+        console.log(`Input ${input.id}: ${input.value}`); // Debug input
+      });
+    });
+    
+    form.addEventListener('submit', (e) => {
+      e.preventDefault(); // Prevent default for testing
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorMessageDiv = document.getElementById('error-message');
+      
+      if (!username || !password) {
+        errorMessageDiv.textContent = 'Please fill in both username and password.';
+        errorMessageDiv.style.display = 'block';
+        gsap.from(errorMessageDiv, {
+          duration: 0.6,
+          opacity: 0,
+          y: -20,
+          ease: 'power3.out'
+        });
+        return;
+      }
+      
+      console.log('Form submitted:', { username, password }); // Debug submission
+      errorMessageDiv.textContent = 'Validating...';
+      errorMessageDiv.style.background = 'rgba(59, 130, 246, 0.1)';
+      errorMessageDiv.style.border = '1px solid rgba(59, 130, 246, 0.3)';
+      errorMessageDiv.style.color = '#3B82F6'; // Matches var(--accent-color) in light mode
+      errorMessageDiv.style.display = 'block';
+      gsap.from(errorMessageDiv, {
+        duration: 0.6,
+        opacity: 0,
+        y: -20,
+        ease: 'power3.out'
+      });
+      
+      
+       form.submit();
+    });
+  </script>
+</body>
+</html>

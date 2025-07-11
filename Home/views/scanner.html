@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0A0A0F;
+            --text-color: #E0E0E0;
+            --card-bg: rgba(20, 20, 30, 0.9);
+            --nav-bg: rgba(10, 10, 15, 0.9);
+            --input-bg: rgba(40, 40, 50, 0.8);
+            --gradient: linear-gradient(135deg, #6B34F5, #00DDEB);
+            --gradient-start: #6B34F5;
+            --gradient-end: #00DDEB;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            --border: rgba(107, 52, 245, 0.2);
+            --accent-color: #6B34F5;
+        }
+        .light-mode {
+            --bg-color: #F5F6FA;
+            --text-color: #333;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --nav-bg: rgba(245, 246, 250, 0.9);
+            --input-bg: rgba(240, 240, 245, 0.8);
+            --table-cell-bg: rgba(230, 230, 235, 0.8);
+            --gradient: linear-gradient(135deg, #FF758C, #FCD968);
+            --gradient-start: #FF758C;
+            --gradient-end: #FCD968;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            --border: rgba(255, 117, 140, 0.2);
+            --accent-color: #FF758C;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            position: relative;
+            transition: background 0.3s, color 0.3s;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--nav-bg);
+            padding: 20px 40px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            margin: 0;
+            gap: 20px;
+        }
+        .nav-links li {
+            display: flex;
+            align-items: center;
+        }
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: color 0.3s, transform 0.3s;
+        }
+        .nav-links a:hover {
+            color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+        .hamburger {
+            display: none;
+            font-size: 28px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                background: var(--nav-bg);
+                position: absolute;
+                top: 80px;
+                left: 0;
+                width: 100%;
+                text-align: center;
+                padding: 20px 0;
+                transition: background 0.3s;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .hamburger {
+                display: block;
+            }
+            .nav-links li {
+                margin-bottom: 10px;
+            }
+        }
+        #logo {
+            height: 60px;
+            filter: brightness(1.2);
+        }
+        #logout-btn {
+            background: var(--gradient);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(107, 52, 245, 0.4);
+            line-height: normal;
+        }
+        #logout-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(107, 52, 245, 0.6);
+        }
+        #logout-btn:active {
+            background: var(--accent-color);
+            transform: scale(0.98);
+        }
+        h1 {
+            text-align: center;
+            margin: 60px 0 40px;
+            color: var(--text-color);
+            font-size: 36px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: color 0.3s;
+        }
+        .input-group {
+            text-align: center;
+            margin: 20px 0;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="time"] {
+            padding: 12px;
+            width: 200px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 14px;
+            outline: none;
+            margin: 10px 5px;
+            transition: border-color 0.3s, background 0.3s, color 0.3s;
+        }
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 5px rgba(107, 52, 245, 0.5);
+        }
+        .slots-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 10px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        .slots-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.3s, transform 0.3s;
+        }
+        .slots-group label:hover {
+            background: rgba(107, 52, 245, 0.1);
+            transform: translateY(-2px);
+        }
+        .slots-group input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--input-bg);
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .slots-group input[type="checkbox"]:checked {
+            background: var(--gradient);
+            border-color: var(--accent-color);
+        }
+        .slots-group input[type="checkbox"]:checked::after {
+            content: '✔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .scanner-container {
+            display: none;
+            margin: 20px auto;
+            text-align: center;
+        }
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0 40px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            background: var(--gradient);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(107, 52, 245, 0.4);
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(107, 52, 245, 0.6);
+        }
+        button:active {
+            transform: scale(0.98);
+            background: var(--accent-color);
+        }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin: 60px 20px;
+        }
+        table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            transition: background 0.3s;
+        }
+        th {
+            background: var(--gradient);
+            color: #fff;
+            font-weight: 600;
+        }
+        td {
+            background: var(--table-cell-bg, transparent);
+        }
+        td input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin: 0;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        td input[type="text"]:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 5px rgba(107, 52, 245, 0.5);
+        }
+        tr:hover {
+            background: rgba(107, 52, 245, 0.1);
+            transition: 0.3s;
+        }
+        @media (max-width: 768px) {
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+            table {
+                min-width: 100%;
+            }
+            button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+            #reader {
+                max-width: 100%;
+            }
+            input[type="text"],
+            input[type="date"],
+            input[type="time"] {
+                width: 150px;
+            }
+            .slots-group label {
+                padding: 6px 10px;
+            }
+            .slots-group input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+            }
+            .table-container {
+                margin: 40px 10px;
+            }
+        }
+        .mode-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: var(--gradient);
+            border-radius: 25px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .light-mode .slider {
+            transform: translateX(30px);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+    <nav class="navbar">
+        <img src="/images/mainlogo.png" id="logo">
+        <ul class="nav-links">
+            <li><a href="/homepage">Home</a></li>
+            <li><a href="/attendance">Attendance</a></li>
+            <li><a href="/details">Student Details</a></li>
+            <li><a href="/leaders">Leaderboard</a></li>
+            <li><button id="logout-btn">Logout</button></li>
+            <li><div class="mode-toggle" id="mode-toggle"><div class="slider">🌙</div></div></li>
+        </ul>
+        <div class="hamburger" onclick="toggleMenu()">☰</div>
+    </nav>
+    <h1>OD LIST GENERATOR</h1>
+    <div class="input-group">
+        <div>
+            <input type="text" id="eventName" placeholder="Enter event name">
+            <input type="date" id="eventDate">
+            <input type="time" id="eventTime">
+        </div>
+        <div class="slots-group">
+            <label><input type="checkbox" name="slot" value="1" onchange="updateCommonSlots()"> Slot 1</label>
+            <label><input type="checkbox" name="slot" value="2" onchange="updateCommonSlots()"> Slot 2</label>
+            <label><input type="checkbox" name="slot" value="3" onchange="updateCommonSlots()"> Slot 3</label>
+            <label><input type="checkbox" name="slot" value="4" onchange="updateCommonSlots()"> Slot 4</label>
+            <label><input type="checkbox" name="slot" value="5" onchange="updateCommonSlots()"> Slot 5</label>
+            <label><input type="checkbox" name="slot" value="6" onchange="updateCommonSlots()"> Slot 6</label>
+            <label><input type="checkbox" name="slot" value="7" onchange="updateCommonSlots()"> Slot 7</label>
+            <label><input type="checkbox" name="slot" value="8" onchange="updateCommonSlots()"> Slot 8</label>
+            <label><input type="checkbox" name="slot" value="9" onchange="updateCommonSlots()"> Slot 9</label>
+        </div>
+        <div class="scanner-container" id="scanner-container">
+            <div id="reader"></div>
+        </div>
+        <div class="button-group" id="button-group">
+            <button id="toggleScanner">Open Scanner</button>
+            <button onclick="downloadExcel()">Download as Excel</button>
+            <button onclick="sendToStudentWelfare()">Send to Student Affairs</button>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Roll Number</th>
+                    <th>Timestamp</th>
+                    <th>Slots</th>
+                </tr>
+            </thead>
+            <tbody id="rollNumberTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const particlesArray = [];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width) this.x = 0;
+                else if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                else if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = document.body.classList.contains('light-mode') ? `rgba(252, 217, 104, ${this.opacity})` : `rgba(0, 221, 235, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        for (let i = 0; i < 100; i++) {
+            particlesArray.push(new Particle());
+        }
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particlesArray.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        const logoutBtn = document.getElementById('logout-btn');
+        logoutBtn.addEventListener('click', () => {
+            document.cookie = 'userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            document.cookie = 'userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            localStorage.removeItem('email');
+            localStorage.removeItem('userEmail');
+            history.replaceState(null, null, "/");
+            window.location.href = '/';
+        });
+
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        const modeToggle = document.getElementById('mode-toggle');
+        modeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+            modeToggle.querySelector('.slider').textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+        });
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-mode');
+                modeToggle.querySelector('.slider').textContent = '☀️';
+            } else {
+                modeToggle.querySelector('.slider').textContent = '🌙';
+            }
+            gsap.from('.navbar', { duration: 1, y: -50, opacity: 0, ease: 'power3.out' });
+            gsap.from('h1', { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: 0.2 });
+            gsap.from('.input-group', { duration: 1, opacity: 0, scale: 0.9, ease: 'power3.out', delay: 0.4 });
+            gsap.from('.button-group button', { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: 0.6, stagger: 0.2 });
+            gsap.from('.table-container', { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: 0.8 });
+        });
+
+        let rollNumbers = [];
+        let scanner;
+        let scannerActive = false;
+
+        function updateCommonSlots() {
+            const checkboxes = document.querySelectorAll('input[name="slot"]:checked');
+            const selectedSlots = Array.from(checkboxes).map(checkbox => checkbox.value);
+            const slotsString = selectedSlots.join(',');
+
+            rollNumbers.forEach(entry => entry.slots = slotsString);
+
+            document.querySelectorAll("#rollNumberTable input").forEach(input => {
+                const rowIndex = input.closest('tr').rowIndex - 1;
+                input.value = slotsString;
+                rollNumbers[rowIndex].slots = slotsString;
+            });
+        }
+
+        function validateSlotsInput(value) {
+            if (value === '') return true;
+
+            const regex = /^([1-9])(,[1-9])*(,)?$/;
+            if (!regex.test(value)) return false;
+
+            const numbers = value.split(',').filter(num => num !== '');
+            return numbers.every(num => {
+                const n = parseInt(num, 10);
+                return n >= 1 && n <= 9;
+            });
+        }
+
+        function onScanSuccess(decodedText) {
+            if (!rollNumbers.some(entry => entry.rollNumber === decodedText)) {
+                let timestamp = new Date().toLocaleString();
+                const checkboxes = document.querySelectorAll('input[name="slot"]:checked');
+                const selectedSlots = Array.from(checkboxes).map(checkbox => checkbox.value);
+                const slotsString = selectedSlots.join(',');
+
+                rollNumbers.push({ rollNumber: decodedText, timestamp: timestamp, slots: slotsString });
+
+                let table = document.getElementById("rollNumberTable");
+                let row = table.insertRow();
+                row.insertCell(0).innerText = rollNumbers.length;
+                row.insertCell(1).innerText = decodedText;
+                row.insertCell(2).innerText = timestamp;
+                let slotCell = row.insertCell(3);
+                let slotInput = document.createElement("input");
+                slotInput.type = "text";
+                slotInput.value = slotsString;
+
+                let lastValidValue = slotsString;
+
+                slotInput.oninput = function() {
+                    const newValue = slotInput.value;
+                    if (validateSlotsInput(newValue)) {
+                        lastValidValue = newValue;
+                        rollNumbers[row.rowIndex - 1].slots = newValue;
+                    } else {
+                        slotInput.value = lastValidValue;
+                        alert("Invalid input! Please enter numbers between 1 and 9, separated by commas (e.g., 1,2,3).");
+                    }
+                };
+
+                slotCell.appendChild(slotInput);
+            }
+        }
+
+        function toggleScanner() {
+            const scannerContainer = document.getElementById("scanner-container");
+
+            if (scannerActive) {
+                // Close the scanner
+                scanner.stop();
+                gsap.to(scannerContainer, {
+                    opacity: 0,
+                    height: 0,
+                    margin: 0,
+                    duration: 0.3,
+                    ease: "power3.in",
+                    onComplete: () => {
+                        scannerContainer.style.display = "none";
+                    }
+                });
+                document.getElementById("toggleScanner").innerText = "Open Scanner";
+            } else {
+                // Open the scanner
+                scannerContainer.style.display = "block";
+                gsap.fromTo(scannerContainer, 
+                    { opacity: 0, height: 0, margin: "0 auto" },
+                    { opacity: 1, height: "auto", margin: "20px auto", duration: 0.3, ease: "power3.out" }
+                );
+                scanner = new Html5Qrcode("reader");
+                scanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: 250 },
+                    onScanSuccess
+                );
+                document.getElementById("toggleScanner").innerText = "Close Scanner";
+            }
+            scannerActive = !scannerActive;
+        }
+
+        document.getElementById("toggleScanner").addEventListener("click", toggleScanner);
+
+        function generateExcelData() {
+            let eventName = document.getElementById("eventName").value || "Unnamed Event";
+            let eventDate = document.getElementById("eventDate").value || "No Date";
+            let eventTime = document.getElementById("eventTime").value || "No Time";
+            let headerRow1 = ["Event Name:", eventName];
+            let headerRow2 = ["Event Date:", eventDate];
+            let headerRow3 = ["Event Time:", eventTime];
+            let emptyRow = [];
+            let sheetData = [
+                headerRow1, headerRow2, headerRow3, emptyRow,
+                ["S.No", "Roll Number", "Timestamp", "Slots"],
+                ...rollNumbers.map((entry, index) => [
+                    index + 1,
+                    entry.rollNumber,
+                    entry.timestamp,
+                    entry.slots.endsWith(',') ? entry.slots.slice(0, -1) : entry.slots
+                ])
+            ];
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.aoa_to_sheet(sheetData);
+            XLSX.utils.book_append_sheet(wb, ws, "OD List");
+            return XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+        }
+
+        function downloadExcel() {
+            let excelData = generateExcelData();
+            let blob = new Blob([excelData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            let url = window.URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'OD_List.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        async function sendToStudentWelfare() {
+            if (rollNumbers.length === 0) {
+                alert("No entries to send! Please scan some QR codes first.");
+                return;
+            }
+
+            let eventName = document.getElementById("eventName").value || "Unnamed Event";
+            let eventDate = document.getElementById("eventDate").value || "No Date";
+            let eventTime = document.getElementById("eventTime").value || "No Time";
+
+            let excelData = generateExcelData();
+            let blob = new Blob([excelData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            let formData = new FormData();
+            formData.append('excelFile', blob, 'OD_List.xlsx');
+            formData.append('eventName', eventName);
+            formData.append('eventDate', eventDate);
+            formData.append('eventTime', eventTime);
+
+            try {
+                let response = await fetch('/api/send-od-list', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert("OD list successfully sent to Student Welfare!");
+                } else {
+                    let errorText = await response.text();
+                    alert("Failed to send OD list: " + errorText);
+                }
+            } catch (error) {
+                console.error('Error sending OD list:', error);
+                alert("Failed to send OD list due to a network error.");
+            }
+        }
+    </script>
+</body>
+</html>
